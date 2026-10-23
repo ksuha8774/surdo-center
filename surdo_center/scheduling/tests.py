@@ -4,6 +4,7 @@ from threading import Barrier, Thread
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, close_old_connections, connections, transaction
 from django.test import TestCase, TransactionTestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Doctor, User
@@ -118,6 +119,78 @@ class SchedulingTests(TestCase):
         move_appointment(appointment, self.date, time(10))
         appointment.refresh_from_db()
         self.assertEqual((appointment.start_time, appointment.end_time), (time(10), time(11)))
+
+    def test_available_slots_endpoint_uses_selected_service_duration(self):
+        long_service = Service.objects.create(service_name="Расширенная диагностика", price=3000, duration_minutes=90)
+        self.client.force_login(self.admin)
+        url = reverse("scheduling:available_slots")
+        common = {"doctor": self.doctor.pk, "date": self.date.isoformat()}
+
+        regular = self.client.get(url, {**common, "service": self.service.pk})
+        extended = self.client.get(url, {**common, "service": long_service.pk})
+
+        self.assertEqual(regular.status_code, 200)
+        self.assertEqual(extended.status_code, 200)
+        self.assertEqual(regular.json()["slots"][-1], {"start": "11:00", "end": "12:00"})
+        self.assertEqual(extended.json()["slots"][-1], {"start": "10:30", "end": "12:00"})
+
+    def test_create_form_shows_service_duration(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("scheduling:create"))
+        self.assertContains(response, "Консультация — 60 мин.")
+
+    def test_create_view_rechecks_a_stale_slot(self):
+        create_appointment(
+            patient=self.patient, doctor=self.doctor, service=self.service,
+            selected_date=self.date, start_time=time(9), user=self.admin,
+        )
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("scheduling:create"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "service": self.service.pk,
+            "appointment_date": self.date.isoformat(),
+            "slot": "09:00",
+            "action": "book",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Выбранный интервал уже занят или недоступен")
+        self.assertEqual(Appointment.objects.count(), 1)
+
+    def test_create_move_and_cancel_views_refresh_availability(self):
+        self.client.force_login(self.admin)
+        create_response = self.client.post(reverse("scheduling:create"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "service": self.service.pk,
+            "appointment_date": self.date.isoformat(),
+            "slot": "09:00",
+            "action": "book",
+        })
+        self.assertEqual(create_response.status_code, 302)
+        appointment = Appointment.objects.get()
+
+        move_response = self.client.post(reverse("scheduling:reschedule", args=(appointment.pk,)), {
+            "appointment_date": self.date.isoformat(),
+            "slot": "10:00",
+            "action": "move",
+        })
+        self.assertEqual(move_response.status_code, 302)
+        appointment.refresh_from_db()
+        self.assertEqual((appointment.start_time, appointment.end_time), (time(10), time(11)))
+
+        slots_url = reverse("scheduling:available_slots")
+        params = {"doctor": self.doctor.pk, "service": self.service.pk, "date": self.date.isoformat()}
+        starts_after_move = {item["start"] for item in self.client.get(slots_url, params).json()["slots"]}
+        self.assertIn("09:00", starts_after_move)
+        self.assertNotIn("10:00", starts_after_move)
+
+        cancel_response = self.client.post(reverse("scheduling:cancel", args=(appointment.pk,)))
+        self.assertEqual(cancel_response.status_code, 302)
+        appointment.refresh_from_db()
+        self.assertEqual(appointment.status, Appointment.Status.CANCELLED)
+        starts_after_cancel = {item["start"] for item in self.client.get(slots_url, params).json()["slots"]}
+        self.assertIn("10:00", starts_after_cancel)
 
 
 class ConcurrentBookingTests(TransactionTestCase):
