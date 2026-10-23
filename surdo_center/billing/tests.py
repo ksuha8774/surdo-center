@@ -35,6 +35,9 @@ class BillingModelTests(TestCase):
         with self.assertRaises(ValidationError):
             service.full_clean()
 
+    def test_service_duration_has_no_universal_default(self):
+        self.assertFalse(Service._meta.get_field("duration_minutes").has_default())
+
     def test_provided_service_requires_positive_quantity(self):
         with self.assertRaises(IntegrityError), transaction.atomic():
             ProvidedService.objects.create(

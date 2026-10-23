@@ -5,20 +5,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def create_doctor_profiles(apps, schema_editor):
-    User = apps.get_model('accounts', 'User')
-    Doctor = apps.get_model('accounts', 'Doctor')
-    for user in User.objects.filter(role='doctor').iterator():
-        Doctor.objects.get_or_create(user_id=user.pk, defaults={'specialization': user.specialization})
-
-
-def restore_specializations(apps, schema_editor):
-    User = apps.get_model('accounts', 'User')
-    Doctor = apps.get_model('accounts', 'Doctor')
-    for doctor in Doctor.objects.all().iterator():
-        User.objects.filter(pk=doctor.user_id).update(specialization=doctor.specialization)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -33,7 +19,6 @@ class Migration(migrations.Migration):
                 ('specialization', models.CharField(blank=True, max_length=120, verbose_name='Специализация')),
             ],
         ),
-        migrations.RunPython(create_doctor_profiles, restore_specializations),
         migrations.RemoveField(
             model_name='user',
             name='specialization',

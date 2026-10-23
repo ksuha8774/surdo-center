@@ -9,7 +9,6 @@ class Service(models.Model):
     price = models.DecimalField("Цена", max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
     duration_minutes = models.PositiveSmallIntegerField(
         "Продолжительность, минут",
-        default=60,
         validators=[MinValueValidator(1)],
     )
     is_active = models.BooleanField("Активна", default=True)
