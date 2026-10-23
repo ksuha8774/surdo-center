@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" agent="Codex" compressed="false">
+  <diagram name="1 Фактическая предметная модель" id="1_Фактическая_предметная_модель">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="2600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="&lt;b&gt;ER-диаграмма АСУ сурдологического центра — фактические Django-модели&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=26;fontColor=#163247;">
+          <mxGeometry x="600" y="20" width="2200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" vertex="1" value="Сформировано из текущего состояния Django ORM. Рабочая PostgreSQL не мигрировалась." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;align=left;spacing=8;">
+          <mxGeometry x="80" y="80" width="3200" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="table_0" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;accounts_user&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;password : varchar(128)&lt;br&gt;last_login : timestamptz NULL&lt;br&gt;is_superuser : boolean&lt;br&gt;UQ username : varchar(150)&lt;br&gt;first_name : varchar(150)&lt;br&gt;last_name : varchar(150)&lt;br&gt;email : varchar(254)&lt;br&gt;is_staff : boolean&lt;br&gt;is_active : boolean&lt;br&gt;date_joined : timestamptz&lt;br&gt;middle_name : varchar(100)&lt;br&gt;role : varchar(20)&lt;br&gt;CK user_role_valid&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="170" width="980" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="table_1" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;accounts_doctor&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK/FK doctor_id : bigint&lt;br&gt;specialization : varchar(120)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="170" width="980" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="table_2" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;patients_patient&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;last_name : varchar(100)&lt;br&gt;first_name : varchar(100)&lt;br&gt;middle_name : varchar(100)&lt;br&gt;birth_date : date&lt;br&gt;sex : varchar(10)&lt;br&gt;phone : varchar(30)&lt;br&gt;email : varchar(254)&lt;br&gt;city : varchar(100)&lt;br&gt;street : varchar(150)&lt;br&gt;house : varchar(20)&lt;br&gt;apartment : varchar(20)&lt;br&gt;note : text&lt;br&gt;created_at : timestamptz&lt;br&gt;updated_at : timestamptz&lt;br&gt;CK patient_sex_valid&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="170" width="980" height="404" as="geometry" />
+        </mxCell>
+        <mxCell id="table_3" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;scheduling_doctorscheduletemplate&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK doctor_id : bigint&lt;br&gt;weekday : smallint&lt;br&gt;start_time : time&lt;br&gt;end_time : time&lt;br&gt;booking_step_minutes : smallint&lt;br&gt;valid_from : date&lt;br&gt;valid_to : date NULL&lt;br&gt;is_active : boolean&lt;br&gt;CK schedule_weekday_0_6&lt;br&gt;CK schedule_time_order&lt;br&gt;CK schedule_booking_step_positive&lt;br&gt;CK schedule_valid_dates_order&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="336" width="980" height="338" as="geometry" />
+        </mxCell>
+        <mxCell id="table_4" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;scheduling_doctorscheduleexception&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK doctor_id : bigint&lt;br&gt;exception_date : date&lt;br&gt;start_time : time NULL&lt;br&gt;end_time : time NULL&lt;br&gt;is_day_off : boolean&lt;br&gt;is_available : boolean&lt;br&gt;reason : varchar(255)&lt;br&gt;CK schedule_exception_shape_valid&lt;br&gt;UQ unique_doctor_day_off&lt;br&gt;UQ unique_doctor_timed_exception&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="600" width="980" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="table_5" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;scheduling_appointment&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK patient_id : bigint&lt;br&gt;FK doctor_id : bigint&lt;br&gt;FK created_by_id : bigint NULL&lt;br&gt;FK planned_service_id : bigint&lt;br&gt;appointment_date : date&lt;br&gt;start_time : time&lt;br&gt;end_time : time&lt;br&gt;planned_price : numeric(10,2) NULL&lt;br&gt;status : varchar(20)&lt;br&gt;booking_source : varchar(20)&lt;br&gt;FK external_system_id : bigint NULL&lt;br&gt;external_booking_id : varchar(120)&lt;br&gt;sync_status : varchar(20)&lt;br&gt;last_sync_error : text&lt;br&gt;last_synced_at : timestamptz NULL&lt;br&gt;comment : text&lt;br&gt;referral_info : text&lt;br&gt;created_at : timestamptz&lt;br&gt;updated_at : timestamptz&lt;br&gt;CK appointment_time_order&lt;br&gt;CK appointment_planned_price_nonnegative&lt;br&gt;CK appointment_status_valid&lt;br&gt;CK appointment_booking_source_valid&lt;br&gt;CK appointment_sync_status_valid&lt;br&gt;CK appointment_external_identity_complete&lt;br&gt;UQ unique_external_appointment&lt;br&gt;UQ exclude_overlapping_doctor_appointments&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="644" width="980" height="668" as="geometry" />
+        </mxCell>
+        <mxCell id="table_6" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;medical_medicalvisit&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK/UQ appointment_id : bigint&lt;br&gt;complaints : text&lt;br&gt;anamnesis : text&lt;br&gt;examination_result : text&lt;br&gt;conclusion : text&lt;br&gt;recommendations : text&lt;br&gt;started_at : timestamptz&lt;br&gt;completed_at : timestamptz NULL&lt;br&gt;CK medical_visit_completion_order&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="744" width="980" height="272" as="geometry" />
+        </mxCell>
+        <mxCell id="table_7" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;billing_service&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;UQ service_name : varchar(150)&lt;br&gt;price : numeric(10,2)&lt;br&gt;duration_minutes : smallint&lt;br&gt;is_active : boolean&lt;br&gt;CK service_price_nonnegative&lt;br&gt;CK service_duration_positive&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="964" width="980" height="206" as="geometry" />
+        </mxCell>
+        <mxCell id="table_8" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;billing_providedservice&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK visit_id : bigint&lt;br&gt;FK service_id : bigint&lt;br&gt;quantity : integer&lt;br&gt;price_at_time : numeric(10,2)&lt;br&gt;CK provided_service_quantity_positive&lt;br&gt;CK provided_service_price_nonnegative&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="1086" width="980" height="206" as="geometry" />
+        </mxCell>
+        <mxCell id="table_9" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;billing_payment&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK visit_id : bigint&lt;br&gt;amount : numeric(10,2)&lt;br&gt;paid_at : timestamptz NULL&lt;br&gt;payment_method : varchar(20)&lt;br&gt;payment_status : varchar(20)&lt;br&gt;created_at : timestamptz&lt;br&gt;CK payment_amount_positive&lt;br&gt;CK payment_status_paid_at_consistent&lt;br&gt;CK payment_method_valid&lt;br&gt;CK payment_status_valid&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="1240" width="980" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="table_10" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;audiometry_audiometryexam&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK visit_id : bigint&lt;br&gt;FK performed_by_id : bigint&lt;br&gt;exam_datetime : timestamptz&lt;br&gt;equipment_model : varchar(120)&lt;br&gt;completed_at : timestamptz NULL&lt;br&gt;comment : text&lt;br&gt;CK audiometry_exam_completion_order&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="1362" width="980" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="table_11" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;audiometry_audiometrymeasurement&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK exam_id : bigint&lt;br&gt;ear : varchar(5)&lt;br&gt;conduction_type : varchar(10)&lt;br&gt;frequency_hz : integer&lt;br&gt;threshold_db_hl : numeric(5,1) NULL&lt;br&gt;masked : boolean&lt;br&gt;no_response : boolean&lt;br&gt;no_response_level_db_hl : numeric(5,1) NULL&lt;br&gt;UQ unique_audiometry_measurement&lt;br&gt;CK audiometry_frequency_positive&lt;br&gt;CK audiometry_ear_valid&lt;br&gt;CK audiometry_conduction_valid&lt;br&gt;CK audiometry_response_values_consistent&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="1382" width="980" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="table_12" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;audiometry_audiometrycalculation&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK/UQ exam_id : bigint&lt;br&gt;pta4_right : numeric(5,1) NULL&lt;br&gt;pta4_left : numeric(5,1) NULL&lt;br&gt;max_abg_right : numeric(5,1) NULL&lt;br&gt;max_abg_left : numeric(5,1) NULL&lt;br&gt;pta4_interaural_difference : numeric(5,1) NULL&lt;br&gt;calculation_version : varchar(30)&lt;br&gt;calculated_at : timestamptz&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="1604" width="980" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="table_13" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;integrations_externalsystem&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;UQ code : varchar(50)&lt;br&gt;name : varchar(120)&lt;br&gt;is_active : boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="1660" width="980" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="table_14" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;integrations_doctorexternalmapping&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK external_system_id : bigint&lt;br&gt;FK doctor_id : bigint&lt;br&gt;external_staff_id : varchar(120)&lt;br&gt;UQ unique_external_doctor_mapping&lt;br&gt;UQ unique_external_staff_id&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="1812" width="980" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="table_15" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;integrations_serviceexternalmapping&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK external_system_id : bigint&lt;br&gt;FK service_id : bigint&lt;br&gt;external_service_id : varchar(120)&lt;br&gt;UQ unique_external_service_mapping&lt;br&gt;UQ unique_external_service_id&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="1870" width="980" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="table_16" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;integrations_externalbookingrequest&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK external_system_id : bigint&lt;br&gt;external_booking_id : varchar(120)&lt;br&gt;client_name : varchar(200)&lt;br&gt;phone : varchar(30)&lt;br&gt;email : varchar(254)&lt;br&gt;comment : text&lt;br&gt;requested_service_external_id : varchar(120)&lt;br&gt;requested_staff_external_id : varchar(120)&lt;br&gt;appointment_date : date NULL&lt;br&gt;start_time : time NULL&lt;br&gt;end_time : time NULL&lt;br&gt;FK patient_id : bigint NULL&lt;br&gt;FK/UQ appointment_id : bigint NULL&lt;br&gt;status : varchar(20)&lt;br&gt;received_at : timestamptz&lt;br&gt;updated_at : timestamptz&lt;br&gt;UQ unique_external_booking_request&lt;br&gt;CK external_request_time_order&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="1924" width="980" height="470" as="geometry" />
+        </mxCell>
+        <mxCell id="table_17" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;integrations_syncevent&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK external_system_id : bigint&lt;br&gt;UQ idempotency_key : uuid&lt;br&gt;external_event_id : varchar(120)&lt;br&gt;external_object_id : varchar(120)&lt;br&gt;entity_type : varchar(50)&lt;br&gt;direction : varchar(10)&lt;br&gt;status : varchar(20)&lt;br&gt;payload_checksum : varchar(64)&lt;br&gt;error_message : text&lt;br&gt;created_at : timestamptz&lt;br&gt;processed_at : timestamptz NULL&lt;br&gt;UQ unique_external_sync_event&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAF3F8;strokeColor=#6C8EBF;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="2066" width="980" height="338" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_0" parent="1" edge="1" source="table_1" target="table_0" value="doctor_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" parent="1" edge="1" source="table_3" target="table_1" value="doctor_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" parent="1" edge="1" source="table_4" target="table_1" value="doctor_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" parent="1" edge="1" source="table_5" target="table_2" value="patient_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" parent="1" edge="1" source="table_5" target="table_1" value="doctor_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" parent="1" edge="1" source="table_5" target="table_0" value="created_by_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" parent="1" edge="1" source="table_5" target="table_7" value="planned_service_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_7" parent="1" edge="1" source="table_5" target="table_13" value="external_system_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_8" parent="1" edge="1" source="table_6" target="table_5" value="appointment_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_9" parent="1" edge="1" source="table_8" target="table_6" value="visit_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_10" parent="1" edge="1" source="table_8" target="table_7" value="service_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_11" parent="1" edge="1" source="table_9" target="table_6" value="visit_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_12" parent="1" edge="1" source="table_10" target="table_6" value="visit_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_13" parent="1" edge="1" source="table_10" target="table_1" value="performed_by_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_14" parent="1" edge="1" source="table_11" target="table_10" value="exam_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_15" parent="1" edge="1" source="table_12" target="table_10" value="exam_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_16" parent="1" edge="1" source="table_14" target="table_13" value="external_system_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_17" parent="1" edge="1" source="table_14" target="table_1" value="doctor_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_18" parent="1" edge="1" source="table_15" target="table_13" value="external_system_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_19" parent="1" edge="1" source="table_15" target="table_7" value="service_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_20" parent="1" edge="1" source="table_16" target="table_13" value="external_system_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_21" parent="1" edge="1" source="table_16" target="table_2" value="patient_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_22" parent="1" edge="1" source="table_16" target="table_5" value="appointment_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_23" parent="1" edge="1" source="table_17" target="table_13" value="external_system_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2 Служебные таблицы Django" id="2_Служебные_таблицы_Django">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="2600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="&lt;b&gt;Служебные таблицы Django Authentication и инфраструктуры&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=26;fontColor=#163247;">
+          <mxGeometry x="600" y="20" width="2200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" vertex="1" value="Таблицы создаются штатными миграциями Django и показаны отдельно от предметной модели." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;align=left;spacing=8;">
+          <mxGeometry x="80" y="80" width="3200" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="table_0" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;accounts_user&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;password : varchar(128)&lt;br&gt;last_login : timestamptz NULL&lt;br&gt;is_superuser : boolean&lt;br&gt;UQ username : varchar(150)&lt;br&gt;first_name : varchar(150)&lt;br&gt;last_name : varchar(150)&lt;br&gt;email : varchar(254)&lt;br&gt;is_staff : boolean&lt;br&gt;is_active : boolean&lt;br&gt;date_joined : timestamptz&lt;br&gt;middle_name : varchar(100)&lt;br&gt;role : varchar(20)&lt;br&gt;CK user_role_valid&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="170" width="980" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="table_1" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;auth_group&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : integer&lt;br&gt;UQ name : varchar(150)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="170" width="980" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="table_2" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;auth_permission&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : integer&lt;br&gt;name : varchar(255)&lt;br&gt;FK content_type_id : bigint&lt;br&gt;codename : varchar(100)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="170" width="980" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="table_3" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;django_content_type&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : integer&lt;br&gt;app_label : varchar(100)&lt;br&gt;model : varchar(100)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="336" width="980" height="118" as="geometry" />
+        </mxCell>
+        <mxCell id="table_4" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;django_admin_log&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : integer&lt;br&gt;action_time : timestamptz&lt;br&gt;FK user_id : bigint&lt;br&gt;FK content_type_id : bigint NULL&lt;br&gt;object_id : text NULL&lt;br&gt;object_repr : varchar(200)&lt;br&gt;action_flag : smallint&lt;br&gt;change_message : text&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="380" width="980" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="table_5" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;django_session&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK session_key : varchar(40)&lt;br&gt;session_data : text&lt;br&gt;expire_date : timestamptz&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="524" width="980" height="118" as="geometry" />
+        </mxCell>
+        <mxCell id="table_6" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;accounts_user_groups&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK user_id : bigint&lt;br&gt;FK group_id : bigint&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="600" width="980" height="118" as="geometry" />
+        </mxCell>
+        <mxCell id="table_7" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;accounts_user_user_permissions&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;FK user_id : bigint&lt;br&gt;FK permission_id : bigint&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="678" width="980" height="118" as="geometry" />
+        </mxCell>
+        <mxCell id="table_8" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;auth_group_permissions&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : integer&lt;br&gt;FK group_id : bigint&lt;br&gt;FK permission_id : bigint&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="712" width="980" height="118" as="geometry" />
+        </mxCell>
+        <mxCell id="table_9" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;django_migrations&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK id : bigint&lt;br&gt;app : varchar(255)&lt;br&gt;name : varchar(255)&lt;br&gt;applied : timestamptz&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="788" width="980" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_0" parent="1" edge="1" source="table_2" target="table_3" value="content_type_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" parent="1" edge="1" source="table_4" target="table_0" value="user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" parent="1" edge="1" source="table_4" target="table_3" value="content_type_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" parent="1" edge="1" source="table_6" target="table_0" value="user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" parent="1" edge="1" source="table_6" target="table_1" value="group_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" parent="1" edge="1" source="table_7" target="table_0" value="user_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" parent="1" edge="1" source="table_7" target="table_2" value="permission_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_7" parent="1" edge="1" source="table_8" target="table_1" value="group_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_8" parent="1" edge="1" source="table_8" target="table_2" value="permission_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="3 СППР без изменений" id="3_СППР_без_изменений">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="2600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="&lt;b&gt;СППР — проектная ER-модель без изменений&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=26;fontColor=#163247;">
+          <mxGeometry x="600" y="20" width="2200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" vertex="1" value="Эти таблицы сохранены из исходной ER-модели, но пока не реализованы в Django и не создаются новыми миграциями." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;align=left;spacing=8;">
+          <mxGeometry x="80" y="80" width="3200" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="table_0" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_rule_sets&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK rule_set_id : bigint&lt;br&gt;UQ code : varchar(50)&lt;br&gt;UQ version : varchar(30)&lt;br&gt;name : varchar(150)&lt;br&gt;effective_from : date&lt;br&gt;effective_to : date NULL&lt;br&gt;is_active : boolean&lt;br&gt;created_at : timestamptz&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="170" width="980" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="table_1" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_rules&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK rule_id : bigint&lt;br&gt;FK rule_set_id : bigint&lt;br&gt;UQ rule_code : varchar(50)&lt;br&gt;name : varchar(180)&lt;br&gt;priority : integer&lt;br&gt;conclusion_template : text NULL&lt;br&gt;recommendation_template : text NULL&lt;br&gt;is_active : boolean&lt;br&gt;created_at : timestamptz&lt;br&gt;match_mode : varchar(3)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="170" width="980" height="272" as="geometry" />
+        </mxCell>
+        <mxCell id="table_2" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_rule_conditions&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK condition_id : bigint&lt;br&gt;FK rule_id : bigint&lt;br&gt;parameter_code : varchar(50)&lt;br&gt;comparison_operator : varchar(10)&lt;br&gt;comparison_value : numeric(10,2)&lt;br&gt;sequence_no : smallint&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="170" width="980" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="table_3" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_assessments&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK assessment_id : bigint&lt;br&gt;FK exam_id : bigint&lt;br&gt;FK rule_set_id : bigint&lt;br&gt;FK reviewed_by : bigint NULL&lt;br&gt;status : varchar(20)&lt;br&gt;preliminary_conclusion : text&lt;br&gt;preliminary_recommendation : text&lt;br&gt;doctor_comment : text NULL&lt;br&gt;created_at : timestamptz&lt;br&gt;reviewed_at : timestamptz NULL&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="2310" y="424" width="980" height="272" as="geometry" />
+        </mxCell>
+        <mxCell id="table_4" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_rule_activations&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK activation_id : bigint&lt;br&gt;FK assessment_id : bigint&lt;br&gt;FK rule_id : bigint&lt;br&gt;output_conclusion : text NULL&lt;br&gt;output_recommendation : text NULL&lt;br&gt;created_at : timestamptz&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="70" y="468" width="980" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="table_5" parent="1" vertex="1" value="&lt;div style='font-size:17px;text-align:center'&gt;&lt;b&gt;dss_activation_details&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style='font-family:Consolas;font-size:13px;line-height:1.45'&gt;PK activation_detail_id : bigint&lt;br&gt;FK activation_id : bigint&lt;br&gt;FK condition_id : bigint&lt;br&gt;actual_value : numeric(10,2)&lt;br&gt;condition_met : boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E7E7;strokeColor=#B85450;align=left;verticalAlign=top;spacing=10;fontSize=13;">
+          <mxGeometry x="1190" y="512" width="980" height="162" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_0" parent="1" edge="1" source="table_1" target="table_0" value="rule_set_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_1" parent="1" edge="1" source="table_2" target="table_1" value="rule_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_2" parent="1" edge="1" source="table_3" target="table_0" value="rule_set_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_3" parent="1" edge="1" source="table_4" target="table_3" value="assessment_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_4" parent="1" edge="1" source="table_4" target="table_1" value="rule_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_5" parent="1" edge="1" source="table_5" target="table_4" value="activation_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_6" parent="1" edge="1" source="table_5" target="table_2" value="condition_id" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERmany;endArrow=ERone;fontSize=12;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.models import Doctor, User
 from accounts.permissions import role_required
 from .forms import AppointmentWizardForm, RescheduleForm
 from .models import Appointment, DoctorScheduleTemplate
@@ -17,7 +17,7 @@ from .services import create_appointment, get_available_slots, move_appointment
 def appointment_list(request):
     appointments = Appointment.objects.select_related("patient", "doctor", "planned_service")
     if request.user.role == User.Role.DOCTOR:
-        appointments = appointments.filter(doctor=request.user)
+        appointments = appointments.filter(doctor_id=request.user.pk)
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "")
     if query:
@@ -39,7 +39,7 @@ def appointment_create(request):
     form = AppointmentWizardForm(data, initial=initial)
     slots = []
     if request.method == "POST" and form.is_valid():
-        slots = get_available_slots(form.cleaned_data["doctor"], form.cleaned_data["appointment_date"])
+        slots = get_available_slots(form.cleaned_data["doctor"], form.cleaned_data["appointment_date"], form.cleaned_data["service"])
         if request.method == "POST" and request.POST.get("action") == "book":
             raw_slot = request.POST.get("slot", "")
             try:
@@ -83,7 +83,12 @@ def appointment_reschedule(request, pk):
     form = RescheduleForm(request.POST or request.GET or None, initial={"appointment_date": appointment.appointment_date})
     slots = []
     if form.is_valid():
-        slots = get_available_slots(appointment.doctor, form.cleaned_data["appointment_date"], exclude_appointment=appointment)
+        slots = get_available_slots(
+            appointment.doctor,
+            form.cleaned_data["appointment_date"],
+            duration_minutes=appointment.duration_minutes,
+            exclude_appointment=appointment,
+        )
         if request.method == "POST" and request.POST.get("action") == "move":
             try:
                 selected_time = time.fromisoformat(request.POST.get("slot", ""))
@@ -98,7 +103,7 @@ def appointment_reschedule(request, pk):
 
 @role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
 def schedule_view(request):
-    doctors = User.objects.filter(role=User.Role.DOCTOR, is_active=True).order_by("last_name")
+    doctors = Doctor.objects.filter(user__role=User.Role.DOCTOR, user__is_active=True).select_related("user").order_by("user__last_name")
     if request.user.role == User.Role.DOCTOR:
         doctors = doctors.filter(pk=request.user.pk)
     schedules = DoctorScheduleTemplate.objects.filter(doctor__in=doctors, is_active=True).select_related("doctor")

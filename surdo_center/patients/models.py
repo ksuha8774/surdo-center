@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Patient(models.Model):
@@ -19,10 +20,12 @@ class Patient(models.Model):
     apartment = models.CharField("Квартира", max_length=20, blank=True)
     note = models.TextField("Служебное примечание", blank=True)
     created_at = models.DateTimeField("Создан", auto_now_add=True)
+    updated_at = models.DateTimeField("Изменён", auto_now=True)
 
     class Meta:
         ordering = ("last_name", "first_name", "middle_name")
         indexes = [models.Index(fields=("last_name", "first_name", "middle_name"))]
+        constraints = [models.CheckConstraint(condition=models.Q(sex__in=("female", "male")), name="patient_sex_valid")]
 
     @property
     def full_name(self):
@@ -37,3 +40,9 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.full_name
+
+    def clean(self):
+        super().clean()
+        if self.birth_date and self.birth_date > timezone.localdate():
+            from django.core.exceptions import ValidationError
+            raise ValidationError({"birth_date": "Дата рождения не может быть в будущем."})
