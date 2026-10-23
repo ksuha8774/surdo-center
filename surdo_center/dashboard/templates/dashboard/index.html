@@ -38,7 +38,7 @@
     <a class="appointment-row" href="{% url 'scheduling:detail' item.pk %}">
       <time>{{ item.start_time|time:'H:i' }}</time>
       <span class="timeline-dot"></span>
-      <div><strong>{{ item.patient.full_name }}</strong><small>{{ item.planned_service.name }}{% if item.comment %} · {{ item.comment|truncatechars:60 }}{% endif %}</small></div>
+      <div><strong>{{ item.patient.full_name }}</strong><small>{{ item.planned_service.service_name }}{% if item.comment %} · {{ item.comment|truncatechars:60 }}{% endif %}</small></div>
       {% if not is_doctor %}<span class="doctor-name">{{ item.doctor.full_name }}</span>{% endif %}
       <span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span>
     </a>

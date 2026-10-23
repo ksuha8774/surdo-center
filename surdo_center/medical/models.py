@@ -11,5 +11,13 @@ class MedicalVisit(models.Model):
     started_at = models.DateTimeField("Начат", auto_now_add=True)
     completed_at = models.DateTimeField("Завершён", null=True, blank=True)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(completed_at__isnull=True) | models.Q(completed_at__gte=models.F("started_at")),
+                name="medical_visit_completion_order",
+            ),
+        ]
+
     def __str__(self):
         return f"Приём: {self.appointment}"

@@ -14,7 +14,7 @@ def dashboard(request):
     context = {"today": today, "role": request.user.role}
 
     if request.user.role == User.Role.DOCTOR:
-        own = appointments.filter(doctor=request.user)
+        own = appointments.filter(doctor_id=request.user.pk)
         context.update({
             "today_total": own.count(),
             "today_completed": own.filter(status=Appointment.Status.COMPLETED).count(),
