@@ -4,7 +4,7 @@
 <a class="back-link" href="{% url 'scheduling:list' %}">← К журналу записей</a>
 <div class="page-heading"><div><p class="eyebrow">Новая запись</p><h1>Записать пациента на приём</h1><p>Система покажет только доступное время в рабочем графике врача.</p></div></div>
 <div class="booking-layout">
-  <form method="post" class="panel booking-form" novalidate data-validate>{% csrf_token %}
+  <form method="post" class="panel booking-form" novalidate data-validate data-slot-form data-slot-mode="create" data-slot-url="{% url 'scheduling:available_slots' %}">{% csrf_token %}
     {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
     <div class="steps" aria-label="Этапы записи"><span class="done"><b>1</b>Пациент</span><span class="done"><b>2</b>Врач и услуга</span><span class="{% if slots %}done{% endif %}"><b>3</b>Дата</span><span class="{% if slots %}active{% endif %}"><b>4</b>Время</span></div>
     <div class="booking-grid">
@@ -12,11 +12,12 @@
     </div>
     <div class="slot-section">
       <div class="section-heading"><div><h2>Доступное время</h2><p>Занятые, прошедшие и закрытые интервалы не показываются.</p></div><button class="btn btn-secondary" name="action" value="search" type="submit">Показать время</button></div>
-      {% if slots %}<div class="slot-grid">{% for start, end in slots %}<label class="slot"><input type="radio" name="slot" value="{{ start|time:'H:i' }}" required><span><b>{{ start|time:'H:i' }}</b><small>до {{ end|time:'H:i' }}</small></span></label>{% endfor %}</div>
-      {% elif request.POST %}<div class="empty-inline">На выбранную дату свободных интервалов нет. Выберите другую дату.</div>
-      {% else %}<div class="slot-placeholder">Выберите пациента, врача, услугу и дату, затем нажмите «Показать время».</div>{% endif %}
+      <div class="slot-feedback {% if slots %}has-slots{% endif %}" data-slot-message aria-live="polite">
+        {% if slots %}Найдено интервалов: {{ slots|length }}. Выберите время начала.{% elif request.POST %}На выбранную дату свободных интервалов нет. Выберите другую дату.{% else %}Выберите пациента, врача, услугу и дату. Время обновится автоматически.{% endif %}
+      </div>
+      <div class="slot-grid" data-slot-grid>{% for start, end in slots %}<label class="slot"><input type="radio" name="slot" value="{{ start|time:'H:i' }}" required><span><b>{{ start|time:'H:i' }}</b><small>до {{ end|time:'H:i' }}</small></span></label>{% endfor %}</div>
     </div>
-    <div class="form-actions"><a class="btn btn-secondary" href="{% url 'scheduling:list' %}">Отменить</a><button class="btn btn-primary" name="action" value="book" type="submit" {% if not slots %}disabled{% endif %}>Создать запись</button></div>
+    <div class="form-actions"><a class="btn btn-secondary" href="{% url 'scheduling:list' %}">Отменить</a><button class="btn btn-primary" name="action" value="book" type="submit" data-slot-submit {% if not slots %}disabled{% endif %}>Создать запись</button></div>
   </form>
   <aside class="booking-help"><p class="eyebrow">Как работает запись</p><ol><li>Берётся рабочий график выбранного врача.</li><li>Учитываются выходные и изменения графика.</li><li>Исключаются пересекающиеся активные записи.</li><li>Перед сохранением время проверяется повторно на сервере.</li></ol></aside>
 </div>

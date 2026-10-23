@@ -1,6 +1,17 @@
 {% extends 'base.html' %}
 {% block title %}Перенос записи · АудиоМед{% endblock %}
 {% block content %}
-<div class="form-shell"><a class="back-link" href="{% url 'scheduling:detail' appointment.pk %}">← К записи</a><div class="page-heading compact"><div><p class="eyebrow">Перенос записи</p><h1>{{ appointment.patient.full_name }}</h1><p>Сейчас: {{ appointment.appointment_date|date:'d.m.Y' }} в {{ appointment.start_time|time:'H:i' }}, {{ appointment.doctor.full_name }}</p></div></div>
-<form method="post" class="panel" novalidate>{% csrf_token %}{% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}<div class="field {% if form.appointment_date.errors %}invalid{% endif %}"><label for="{{ form.appointment_date.id_for_label }}">Новая дата <b>*</b></label>{{ form.appointment_date }}{% for error in form.appointment_date.errors %}<small class="error">{{ error }}</small>{% endfor %}</div><button class="btn btn-secondary top-gap" name="action" value="search">Показать свободное время</button>{% if slots %}<div class="slot-grid top-gap">{% for start, end in slots %}<label class="slot"><input type="radio" name="slot" value="{{ start|time:'H:i' }}" required><span><b>{{ start|time:'H:i' }}</b><small>до {{ end|time:'H:i' }}</small></span></label>{% endfor %}</div>{% endif %}<div class="form-actions"><a class="btn btn-secondary" href="{% url 'scheduling:detail' appointment.pk %}">Отменить</a><button class="btn btn-primary" name="action" value="move" {% if not slots %}disabled{% endif %}>Перенести запись</button></div></form></div>
+<div class="form-shell">
+  <a class="back-link" href="{% url 'scheduling:detail' appointment.pk %}">← К записи</a>
+  <div class="page-heading compact"><div><p class="eyebrow">Перенос записи</p><h1>{{ appointment.patient.full_name }}</h1><p>Сейчас: {{ appointment.appointment_date|date:'d.m.Y' }} в {{ appointment.start_time|time:'H:i' }}, {{ appointment.doctor.full_name }}</p><p>{{ appointment.planned_service.service_name }} · {{ appointment.duration_minutes }} мин.</p></div></div>
+  <form method="post" class="panel" novalidate data-validate data-slot-form data-slot-mode="reschedule" data-slot-url="{% url 'scheduling:reschedule_available_slots' appointment.pk %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="field {% if form.appointment_date.errors %}invalid{% endif %}"><label for="{{ form.appointment_date.id_for_label }}">Новая дата <b>*</b></label>{{ form.appointment_date }}{% for error in form.appointment_date.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+    <button class="btn btn-secondary top-gap" name="action" value="search">Показать свободное время</button>
+    <div class="slot-feedback top-gap {% if slots %}has-slots{% endif %}" data-slot-message aria-live="polite">{% if slots %}Найдено интервалов: {{ slots|length }}. Длительность записи сохранится — {{ appointment.duration_minutes }} мин.{% elif request.POST %}На выбранную дату свободных интервалов нет.{% else %}Выберите новую дату. Время обновится автоматически.{% endif %}</div>
+    <div class="slot-grid" data-slot-grid>{% for start, end in slots %}<label class="slot"><input type="radio" name="slot" value="{{ start|time:'H:i' }}" required><span><b>{{ start|time:'H:i' }}</b><small>до {{ end|time:'H:i' }}</small></span></label>{% endfor %}</div>
+    <div class="form-actions"><a class="btn btn-secondary" href="{% url 'scheduling:detail' appointment.pk %}">Отменить</a><button class="btn btn-primary" name="action" value="move" data-slot-submit {% if not slots %}disabled{% endif %}>Перенести запись</button></div>
+  </form>
+</div>
 {% endblock %}
