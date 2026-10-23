@@ -1,0 +1,59 @@
+# Python environments and caches
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local configuration, credentials, and secrets
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+
+# Local databases, backups, logs, and generated runtime data
+*.sqlite
+*.sqlite3
+*.db
+**/.local-backups/
+**/backups/
+**/staticfiles/
+**/media/
+*.log
+*.bak
+*.backup
+*.dump
+
+# Temporary and editor files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.docx
+*.drawio.svg
+~$*
+~WRL*
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Packaging/build output
+build/
+dist/
+*.egg-info/
+
