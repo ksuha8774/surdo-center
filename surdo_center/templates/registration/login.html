@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Вход в систему · АСУ Сурдоцентра{% endblock %}
+{% block anonymous %}
+<main class="login-page">
+  <section class="login-brand" aria-label="АСУ Сурдоцентра">
+    <div class="login-brand-inner">
+      <img class="login-logo" src="{% static 'images/surdo-center-logo.png' %}" alt="АСУ Сурдоцентра — автоматизированная система управления">
+      <div class="login-brand-message">
+        <span aria-hidden="true"></span>
+        <p>Пациенты · Приёмы · Расписание</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-panel-inner">
+      <form method="post" class="login-form" novalidate data-login-form>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <header class="login-heading">
+          <img class="login-mobile-logo" src="{% static 'images/surdo-center-logo.png' %}" alt="АСУ Сурдоцентра">
+          <h1>Вход в систему</h1>
+          <p>Введите данные вашей учётной записи</p>
+        </header>
+
+        {% if form.non_field_errors %}
+          <div class="login-error" role="alert">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 17h.01"></path></svg>
+            <span>Неверный логин или пароль. Проверьте данные и попробуйте снова.</span>
+          </div>
+        {% endif %}
+
+        <div class="login-field{% if form.username.errors %} invalid{% endif %}">
+          <label for="id_username">Логин</label>
+          <div class="login-input-shell">
+            <svg class="login-input-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 19v-2.2A4.8 4.8 0 0 1 10.3 12h3.4a4.8 4.8 0 0 1 4.8 4.8V19z"></path></svg>
+            <input id="id_username" type="text" name="username" value="{{ form.username.value|default:'' }}" placeholder="Логин" autocomplete="username" required autofocus>
+          </div>
+          {% for error in form.username.errors %}<small class="error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="login-field{% if form.password.errors %} invalid{% endif %}">
+          <label for="id_password">Пароль</label>
+          <div class="login-input-shell">
+            <svg class="login-input-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5.5" y="10" width="13" height="10" rx="2"></rect><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10M12 14v2.5"></path></svg>
+            <input id="id_password" type="password" name="password" placeholder="Пароль" autocomplete="current-password" required>
+            <button class="password-toggle" type="button" data-password-toggle aria-label="Показать пароль" aria-pressed="false">
+              <svg class="eye-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M2.5 12s3.6-5 9.5-5 9.5 5 9.5 5-3.6 5-9.5 5-9.5-5-9.5-5z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+              <svg class="eye-closed" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 7.1A9.9 9.9 0 0 1 12 7c5.9 0 9.5 5 9.5 5a15.7 15.7 0 0 1-2.3 2.6M6.2 6.2C3.8 7.8 2.5 12 2.5 12s3.6 5 9.5 5c1.3 0 2.4-.2 3.5-.6M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+            </button>
+          </div>
+          {% for error in form.password.errors %}<small class="error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="login-options">
+          <label class="remember-control">
+            <input type="checkbox" name="remember_me" value="1"{% if request.POST.remember_me %} checked{% endif %}>
+            <span class="remember-box" aria-hidden="true">
+              <svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"></path></svg>
+            </span>
+            <span>Запомнить меня</span>
+          </label>
+          <button class="password-help-link" type="button" data-password-help>Забыли пароль?</button>
+        </div>
+
+        <p class="password-help-text" data-password-help-text hidden>Для восстановления доступа обратитесь к администратору системы.</p>
+
+        <button class="login-submit" type="submit">Войти</button>
+
+        <footer class="login-footer">
+          <span>Автоматизированная система управления<br>сурдологического центра</span>
+          <span>Версия 1.0</span>
+        </footer>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}

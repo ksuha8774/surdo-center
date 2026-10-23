@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} · АудиоМед{% endblock %}
+{% block content %}
+<div class="form-shell">
+  <a class="back-link" href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">← Назад</a>
+  <div class="page-heading compact"><div><p class="eyebrow">Карточка пациента</p><h1>{{ title }}</h1><p>Обязательные поля отмечены звёздочкой.</p></div></div>
+  <form method="post" class="panel form-panel" novalidate data-validate>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
+    <fieldset><legend>Основные сведения</legend><div class="form-grid">
+      {% for field in form %}{% if field.name == 'city' %}</div></fieldset><fieldset><legend>Адрес</legend><div class="form-grid">{% endif %}
+      <div class="field {% if field.errors %}invalid{% endif %} {% if field.name == 'note' %}wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<b>*</b>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      {% endfor %}
+    </div></fieldset>
+    <div class="form-actions"><a class="btn btn-secondary" href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">Отменить</a><button class="btn btn-primary" type="submit">Сохранить</button></div>
+  </form>
+</div>
+{% endblock %}
