@@ -9,32 +9,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def populate_planned_prices(apps, schema_editor):
-    Appointment = apps.get_model('scheduling', 'Appointment')
-    for appointment in Appointment.objects.select_related('planned_service').filter(planned_price__isnull=True).iterator():
-        appointment.planned_price = appointment.planned_service.price
-        appointment.save(update_fields=('planned_price',))
-
-
-def ensure_no_active_overlaps(apps, schema_editor):
-    Appointment = apps.get_model('scheduling', 'Appointment')
-    active = Appointment.objects.exclude(status='cancelled').order_by('doctor_id', 'appointment_date', 'start_time')
-    previous = None
-    for appointment in active.iterator():
-        if (
-            previous
-            and previous.doctor_id == appointment.doctor_id
-            and previous.appointment_date == appointment.appointment_date
-            and appointment.start_time < previous.end_time
-        ):
-            raise RuntimeError(
-                f'Найдены пересекающиеся записи {previous.pk} и {appointment.pk}; '
-                'исправьте данные перед применением ограничения.'
-            )
-        if previous is None or previous.doctor_id != appointment.doctor_id or previous.appointment_date != appointment.appointment_date or appointment.end_time > previous.end_time:
-            previous = appointment
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -136,8 +110,6 @@ class Migration(migrations.Migration):
             name='doctor',
             field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='schedule_templates', to='accounts.doctor'),
         ),
-        migrations.RunPython(populate_planned_prices, migrations.RunPython.noop),
-        migrations.RunPython(ensure_no_active_overlaps, migrations.RunPython.noop),
         migrations.AddConstraint(
             model_name='appointment',
             constraint=models.CheckConstraint(condition=models.Q(('start_time__lt', models.F('end_time'))), name='appointment_time_order'),
