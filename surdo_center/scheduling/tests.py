@@ -11,6 +11,7 @@ from accounts.models import Doctor, User
 from billing.models import Service
 from integrations.models import ExternalSystem
 from patients.models import Patient
+from .forms import AppointmentWizardForm
 from .models import Appointment, DoctorScheduleException, DoctorScheduleTemplate
 from .services import create_appointment, get_available_slots, move_appointment
 
@@ -156,6 +157,23 @@ class SchedulingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Выбранный интервал уже занят или недоступен")
         self.assertEqual(Appointment.objects.count(), 1)
+
+    def test_archived_patient_cannot_be_selected_or_booked_with_stale_object(self):
+        stale_patient = Patient.objects.get(pk=self.patient.pk)
+        Patient.objects.filter(pk=self.patient.pk).update(is_archived=True, archived_at=timezone.now())
+
+        form = AppointmentWizardForm()
+        self.assertFalse(form.fields["patient"].queryset.filter(pk=self.patient.pk).exists())
+        with self.assertRaisesMessage(ValidationError, "Архивного пациента нельзя записать"):
+            create_appointment(
+                patient=stale_patient,
+                doctor=self.doctor,
+                service=self.service,
+                selected_date=self.date,
+                start_time=time(9),
+                user=self.admin,
+            )
+        self.assertFalse(Appointment.objects.exists())
 
     def test_create_move_and_cancel_views_refresh_availability(self):
         self.client.force_login(self.admin)

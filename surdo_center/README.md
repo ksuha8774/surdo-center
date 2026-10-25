@@ -87,7 +87,14 @@ python manage.py runserver
 
 ## Миграции текущей доработки
 
-Новые миграции созданы и проверены на отдельной тестовой PostgreSQL, но намеренно не применены к рабочей базе. Перед применением следует сделать резервную копию и выполнить:
+Новые миграции создаются и проверяются на отдельной тестовой PostgreSQL, но не применяются к рабочей базе автоматически. Перед применением администратор должен создать резервную копию и убедиться, что она читается:
+
+```powershell
+pg_dump --format=custom --host=HOST --port=PORT --username=USER --dbname=DATABASE --file=.local-backups\before_migrate.backup
+pg_restore --list .local-backups\before_migrate.backup
+```
+
+Только после успешной проверки резервной копии следует просмотреть план и применить миграции:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate --plan

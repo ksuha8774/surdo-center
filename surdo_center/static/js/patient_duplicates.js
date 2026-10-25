@@ -109,6 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 reason = "Совпал телефон";
             }
 
+            if (patient.is_archived) {
+                reason += ". Карточка находится в архиве — восстановите её";
+            }
+
             details.textContent =
                 ` — ${patient.birth_date}, ` +
                 `${patient.phone}. ${reason}`;

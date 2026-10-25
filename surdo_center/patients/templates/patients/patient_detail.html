@@ -1,10 +1,27 @@
 {% extends 'base.html' %}
 {% block title %}{{ patient.full_name }} · Медицинский центр «ЮНА»{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'patients:list' %}">← К списку пациентов</a>
-<div class="page-heading"><div><p class="eyebrow">Карточка пациента</p><h1>{{ patient.full_name }}</h1><p>{{ patient.birth_date|date:'d.m.Y' }} · {{ patient.get_sex_display }} · {{ patient.phone }}</p></div><div class="actions">{% if is_administrator %}<a class="btn btn-secondary" href="{% url 'patients:edit' patient.pk %}">Редактировать</a><a class="btn btn-primary" href="{% url 'scheduling:create' %}?patient={{ patient.pk }}">Записать на приём</a>{% endif %}</div></div>
+<a class="back-link" href="{{ patient_list_url }}">← К списку пациентов</a>
+<div class="page-heading">
+  <div><p class="eyebrow">Карточка пациента</p><h1>{{ patient.full_name }}</h1><p>{{ patient.birth_date|date:'d.m.Y' }} · {{ patient.get_sex_display }} · {{ patient.phone }} · {% if patient.is_archived %}<span class="badge status-archived">В архиве</span>{% else %}<span class="badge status-active">Активна</span>{% endif %}</p></div>
+  <div class="actions">{% if is_administrator %}<a class="btn btn-secondary" href="{% url 'patients:edit' patient.pk %}?return_to={{ patient_list_url|urlencode }}">Редактировать</a>{% if not patient.is_archived %}<a class="btn btn-primary" href="{% url 'scheduling:create' %}?patient={{ patient.pk }}">Записать на приём</a>{% endif %}{% endif %}</div>
+</div>
+{% if patient.is_archived %}
+<section class="panel archive-summary">
+  <div><p class="eyebrow">Архивная карточка</p><h2>Пациент недоступен для новой записи</h2><p>История приёмов, обследований, услуг и оплат сохранена.</p></div>
+  <dl class="details single">
+    <div><dt>Дата архивирования</dt><dd>{{ patient.archived_at|date:'d.m.Y H:i'|default:'Не указана' }}</dd></div>
+    <div><dt>Выполнил</dt><dd>{{ patient.archived_by.full_name|default:'Сведения отсутствуют' }}</dd></div>
+    <div><dt>Причина</dt><dd>{{ patient.archive_reason|default:'Не указана' }}</dd></div>
+  </dl>
+  {% if is_administrator %}<form method="post" action="{% url 'patients:restore' patient.pk %}" onsubmit="return confirm('Восстановить карточку пациента?');">{% csrf_token %}<input type="hidden" name="return_to" value="{{ patient_list_url }}"><button class="btn btn-primary" type="submit">Восстановить</button></form>{% endif %}
+</section>
+{% endif %}
 <div class="tabs"><button class="active" data-tab="main">Основные сведения</button><button data-tab="history">История приёмов</button><button data-tab="future">Будущие записи</button></div>
-<section class="panel tab-panel active" data-panel="main"><dl class="details"><div><dt>Телефон</dt><dd>{{ patient.phone }}</dd></div><div><dt>E-mail</dt><dd>{{ patient.email|default:'Не указан' }}</dd></div><div><dt>Адрес</dt><dd>{{ patient.full_address }}</dd></div><div><dt>Карточка создана</dt><dd>{{ patient.created_at|date:'d.m.Y H:i' }}</dd></div>{% if patient.note %}<div class="full"><dt>Служебное примечание</dt><dd>{{ patient.note }}</dd></div>{% endif %}</dl></section>
+<section class="panel tab-panel active" data-panel="main">
+  <dl class="details"><div><dt>Статус карточки</dt><dd>{% if patient.is_archived %}В архиве{% else %}Активна{% endif %}</dd></div><div><dt>Телефон</dt><dd>{{ patient.phone }}</dd></div><div><dt>E-mail</dt><dd>{{ patient.email|default:'Не указан' }}</dd></div><div><dt>Адрес</dt><dd>{{ patient.full_address }}</dd></div><div><dt>Карточка создана</dt><dd>{{ patient.created_at|date:'d.m.Y H:i' }}</dd></div>{% if patient.note %}<div class="full"><dt>Служебное примечание</dt><dd>{{ patient.note }}</dd></div>{% endif %}</dl>
+  {% if is_administrator and not patient.is_archived %}<details class="archive-control"><summary>Архивировать карточку</summary><form method="post" action="{% url 'patients:archive' patient.pk %}" onsubmit="return confirm('Архивировать карточку пациента? Это не отменит и не удалит медицинские данные.');">{% csrf_token %}<input type="hidden" name="return_to" value="{{ patient_list_url }}"><label for="{{ archive_form.archive_reason.id_for_label }}">{{ archive_form.archive_reason.label }}</label>{{ archive_form.archive_reason }}<small>Архивирование невозможно, пока есть запланированный или начатый приём.</small><button class="btn btn-danger" type="submit">Архивировать</button></form></details>{% endif %}
+</section>
 <section class="panel tab-panel" data-panel="history">{% for item in past_appointments %}<a class="record" href="{% url 'scheduling:detail' item.pk %}"><div><strong>{{ item.appointment_date|date:'d.m.Y' }} · {{ item.planned_service.service_name }}</strong><small>{{ item.doctor.full_name }}</small></div><span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span></a>{% empty %}<div class="empty-state"><b>История пока пуста</b></div>{% endfor %}</section>
 <section class="panel tab-panel" data-panel="future">{% for item in future_appointments %}<a class="record" href="{% url 'scheduling:detail' item.pk %}"><div><strong>{{ item.appointment_date|date:'d.m.Y' }} в {{ item.start_time|time:'H:i' }}</strong><small>{{ item.doctor.full_name }} · {{ item.planned_service.service_name }}</small></div><span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span></a>{% empty %}<div class="empty-state"><b>Будущих записей нет</b></div>{% endfor %}</section>
 {% endblock %}

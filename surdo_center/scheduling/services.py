@@ -5,6 +5,7 @@ from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from accounts.models import Doctor, User
+from patients.models import Patient
 from .models import Appointment, DoctorScheduleException, DoctorScheduleTemplate
 
 
@@ -75,6 +76,9 @@ def get_available_slots(doctor, selected_date, service=None, *, duration_minutes
 
 @transaction.atomic
 def create_appointment(*, patient, doctor, service, selected_date, start_time, user, comment="", referral_info=""):
+    patient = Patient.objects.select_for_update().get(pk=patient.pk)
+    if patient.is_archived:
+        raise ValidationError("Архивного пациента нельзя записать на новый приём. Сначала восстановите его карточку.")
     doctor = Doctor.objects.select_for_update().get(pk=doctor.pk)
     slots = get_available_slots(doctor, selected_date, service)
     match = next((item for item in slots if item[0] == start_time), None)

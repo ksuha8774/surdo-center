@@ -1,8 +1,60 @@
 import re
 
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 
+from accounts.models import User
 from .models import Patient
+
+
+UNFINISHED_APPOINTMENT_STATUSES = ("planned", "in_progress")
+
+
+def _check_archive_permission(actor):
+    if not actor or not actor.is_authenticated:
+        raise PermissionDenied("Для изменения статуса пациента необходимо войти в систему.")
+    if not (actor.is_superuser or actor.role == User.Role.ADMINISTRATOR):
+        raise PermissionDenied("Архивировать и восстанавливать пациентов может только регистратор или технический администратор.")
+
+
+@transaction.atomic
+def archive_patient(*, patient, actor, reason=""):
+    """Архивирует карточку, сохраняя все связанные записи и медицинские данные."""
+    _check_archive_permission(actor)
+    locked = Patient.objects.select_for_update().get(pk=patient.pk)
+    if locked.is_archived:
+        return locked, False
+
+    if locked.appointments.select_for_update().filter(status__in=UNFINISHED_APPOINTMENT_STATUSES).exists():
+        raise ValidationError(
+            "Нельзя архивировать пациента: у него есть незавершённая запись на приём. "
+            "Сначала завершите или отмените запись."
+        )
+
+    locked.is_archived = True
+    locked.archived_at = timezone.now()
+    locked.archived_by = actor
+    locked.archive_reason = (reason or "").strip()
+    locked.save(update_fields=("is_archived", "archived_at", "archived_by", "archive_reason", "updated_at"))
+    return locked, True
+
+
+@transaction.atomic
+def restore_patient(*, patient, actor):
+    """Возвращает карточку в активную картотеку; повторный вызов безопасен."""
+    _check_archive_permission(actor)
+    locked = Patient.objects.select_for_update().get(pk=patient.pk)
+    if not locked.is_archived:
+        return locked, False
+
+    locked.is_archived = False
+    locked.archived_at = None
+    locked.archived_by = None
+    locked.archive_reason = ""
+    locked.save(update_fields=("is_archived", "archived_at", "archived_by", "archive_reason", "updated_at"))
+    return locked, True
 
 
 def normalize_phone_for_search(value):

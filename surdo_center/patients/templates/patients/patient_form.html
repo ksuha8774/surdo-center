@@ -7,8 +7,7 @@
 {% block content %}
 <div class="form-shell">
 
-    <a class="back-link"
-       href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">
+    <a class="back-link" href="{{ cancel_url }}">
         ← Назад
     </a>
 
@@ -115,7 +114,7 @@
                             {{ duplicate.full_name }}
                         </a>
                         — {{ duplicate.birth_date|date:"d.m.Y" }},
-                        {{ duplicate.phone }}
+                        {{ duplicate.phone }}{% if duplicate.is_archived %} — карточка в архиве{% endif %}
                     </li>
                 {% endfor %}
             </ul>
@@ -140,8 +139,7 @@
         <!-- Кнопки управления -->
         <div class="form-actions">
 
-            <a class="btn btn-secondary"
-               href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">
+            <a class="btn btn-secondary" href="{{ cancel_url }}">
                 Отменить
             </a>
 

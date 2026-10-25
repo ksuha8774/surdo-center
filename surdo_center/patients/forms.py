@@ -88,11 +88,16 @@ class PatientForm(forms.ModelForm):
             self.exact_duplicate = exact
             self.possible_duplicates = [exact]
 
+            guidance = (
+                "Карточка находится в архиве — восстановите её, а не создавайте новую."
+                if exact.is_archived
+                else "Используйте существующую карточку."
+            )
             self.add_error(
                 None,
                 "Пациент с такими ФИО, датой рождения "
                 "и телефоном уже зарегистрирован. "
-                "Используйте существующую карточку.",
+                + guidance,
             )
             return data
 
@@ -112,3 +117,15 @@ class PatientForm(forms.ModelForm):
             )
 
         return data
+
+
+class PatientArchiveForm(forms.Form):
+    archive_reason = forms.CharField(
+        label="Причина архивирования",
+        required=False,
+        max_length=1000,
+        widget=forms.Textarea(attrs={
+            "rows": 3,
+            "placeholder": "Необязательно: укажите причину архивирования",
+        }),
+    )
