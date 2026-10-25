@@ -4,17 +4,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}АудиоМед{% endblock %}</title>
-  <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <title>{% block title %}Медицинский центр «ЮНА»{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'images/yuna-favicon.png' %}?v=20261023">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261023-yuna-3">
 </head>
 <body>
 {% if user.is_authenticated %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <a class="brand" href="{% url 'dashboard' %}">
-      <span class="brand-mark" aria-hidden="true">А</span>
-      <span><b>АудиоМед</b><small>сурдологический центр</small></span>
+      <img class="brand-logo" src="{% static 'images/yuna-logo.png' %}" alt="Медицинский центр «ЮНА»">
     </a>
     <nav class="side-nav" aria-label="Основная навигация">
       <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><span>⌂</span>Главная</a>

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
-from accounts.models import Doctor
+from accounts.models import Doctor, User
 from .models import Appointment, DoctorScheduleException, DoctorScheduleTemplate
 
 
@@ -14,6 +14,12 @@ def _overlaps(start_a, end_a, start_b, end_b):
 
 def get_available_slots(doctor, selected_date, service=None, *, duration_minutes=None, exclude_appointment=None):
     if not doctor or selected_date < timezone.localdate():
+        return []
+
+    if (
+        not doctor.user.is_active
+        or doctor.user.role != User.Role.DOCTOR
+    ):
         return []
 
     duration_minutes = duration_minutes or getattr(service, "duration_minutes", None)

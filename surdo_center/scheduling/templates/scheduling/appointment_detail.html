@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Запись №{{ appointment.pk }} · АудиоМед{% endblock %}
+{% block title %}Запись №{{ appointment.pk }} · Медицинский центр «ЮНА»{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'scheduling:list' %}">← К журналу записей</a>
 <div class="page-heading"><div><p class="eyebrow">Запись №{{ appointment.pk }}</p><h1>{{ appointment.patient.full_name }}</h1><p>{{ appointment.appointment_date|date:'d E Y' }} · {{ appointment.start_time|time:'H:i' }}–{{ appointment.end_time|time:'H:i' }}</p></div><span class="badge large status-{{ appointment.status }}">{{ appointment.get_status_display }}</span></div>

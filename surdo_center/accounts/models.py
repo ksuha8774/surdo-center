@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class User(AbstractUser):
@@ -25,6 +26,25 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.full_name
+
+    def _check_doctor_role(self):
+        if (
+            self.pk
+            and self.role != self.Role.DOCTOR
+            and Doctor.objects.filter(user_id=self.pk).exists()
+        ):
+            raise ValidationError({
+                "role": "Нельзя изменить роль пользователя, "
+                        "пока у него существует профиль врача."
+            })
+
+    def clean(self):
+        super().clean()
+        self._check_doctor_role()
+
+    def save(self, *args, **kwargs):
+        self._check_doctor_role()
+        return super().save(*args, **kwargs)
 
 
 class Doctor(models.Model):
@@ -61,3 +81,7 @@ class Doctor(models.Model):
         if self.user_id and self.user.role != User.Role.DOCTOR:
             from django.core.exceptions import ValidationError
             raise ValidationError({"user": "Профиль врача можно связать только с пользователем роли «Врач»."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)

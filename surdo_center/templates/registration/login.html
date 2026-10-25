@@ -1,15 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Вход в систему · АСУ Сурдоцентра{% endblock %}
+{% block title %}Вход в систему · Медицинский центр «ЮНА»{% endblock %}
 {% block anonymous %}
 <main class="login-page">
-  <section class="login-brand" aria-label="АСУ Сурдоцентра">
+  <section class="login-brand" aria-label="Медицинский центр «ЮНА»">
     <div class="login-brand-inner">
-      <img class="login-logo" src="{% static 'images/surdo-center-logo.png' %}" alt="АСУ Сурдоцентра — автоматизированная система управления">
-      <div class="login-brand-message">
-        <span aria-hidden="true"></span>
-        <p>Пациенты · Приёмы · Расписание</p>
-      </div>
+      <img class="login-logo" src="{% static 'images/yuna-logo.png' %}" alt="Медицинский центр «ЮНА»">
     </div>
   </section>
 
@@ -20,7 +16,7 @@
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
         <header class="login-heading">
-          <img class="login-mobile-logo" src="{% static 'images/surdo-center-logo.png' %}" alt="АСУ Сурдоцентра">
+          <img class="login-mobile-logo" src="{% static 'images/yuna-logo.png' %}" alt="Медицинский центр «ЮНА»">
           <h1>Вход в систему</h1>
           <p>Введите данные вашей учётной записи</p>
         </header>
@@ -70,7 +66,7 @@
         <button class="login-submit" type="submit">Войти</button>
 
         <footer class="login-footer">
-          <span>Автоматизированная система управления<br>сурдологического центра</span>
+          <span>Автоматизированная система управления<br>медицинским центром</span>
           <span>Версия 1.0</span>
         </footer>
       </form>

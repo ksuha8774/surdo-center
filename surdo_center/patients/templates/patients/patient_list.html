@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Пациенты · АудиоМед{% endblock %}
+{% block title %}Пациенты · Медицинский центр «ЮНА»{% endblock %}
 {% block content %}
 <div class="page-heading"><div><p class="eyebrow">Картотека</p><h1>Пациенты</h1><p>Поиск по фамилии, ФИО и номеру телефона.</p></div>{% if is_administrator %}<a class="btn btn-primary" href="{% url 'patients:create' %}">Добавить пациента</a>{% endif %}</div>
 <form class="filters" method="get"><label class="search-field"><span>Поиск пациента</span><input type="search" name="q" value="{{ query }}" placeholder="Например, Иванов или +7 999"></label><button class="btn btn-primary">Найти</button><a class="btn btn-secondary" href="{% url 'patients:list' %}">Сбросить</a></form>
