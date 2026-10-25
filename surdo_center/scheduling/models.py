@@ -180,6 +180,8 @@ class Appointment(models.Model):
 
     def clean(self):
         super().clean()
+        if self.patient_id and self.patient.is_archived:
+            raise ValidationError({"patient": "Архивного пациента нельзя записать на новый приём."})
         if self.start_time and self.end_time and self.end_time <= self.start_time:
             raise ValidationError({"end_time": "Время окончания должно быть позже времени начала."})
         if bool(self.external_system_id) != bool(self.external_booking_id):

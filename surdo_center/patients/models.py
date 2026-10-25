@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -19,6 +20,18 @@ class Patient(models.Model):
     house = models.CharField("Дом", max_length=20)
     apartment = models.CharField("Квартира", max_length=20, blank=True)
     note = models.TextField("Служебное примечание", blank=True)
+    is_archived = models.BooleanField("В архиве", default=False, db_index=True, editable=False)
+    archived_at = models.DateTimeField("Дата архивирования", null=True, blank=True, editable=False)
+    archived_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Архивировал",
+        on_delete=models.SET_NULL,
+        related_name="archived_patients",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    archive_reason = models.TextField("Причина архивирования", blank=True, editable=False)
     created_at = models.DateTimeField("Создан", auto_now_add=True)
     updated_at = models.DateTimeField("Изменён", auto_now=True)
 

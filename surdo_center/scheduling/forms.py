@@ -21,7 +21,7 @@ class AppointmentWizardForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["patient"].queryset = Patient.objects.all()
+        self.fields["patient"].queryset = Patient.objects.filter(is_archived=False)
         self.fields["doctor"].queryset = Doctor.objects.filter(user__role="doctor", user__is_active=True).select_related("user").order_by("user__last_name", "user__first_name")
         self.fields["service"].queryset = Service.objects.filter(is_active=True).order_by("service_name")
         self.fields["appointment_date"].widget.attrs["min"] = timezone.localdate().isoformat()
