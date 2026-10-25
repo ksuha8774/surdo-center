@@ -50,7 +50,7 @@ def _slots_json(slots, *, duration_minutes):
     return JsonResponse({"slots": serialized, "duration_minutes": duration_minutes, "message": message})
 
 
-@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
+@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR)
 def appointment_list(request):
     appointments = Appointment.objects.select_related("patient", "doctor", "planned_service")
     if request.user.role == User.Role.DOCTOR:
@@ -97,7 +97,7 @@ def appointment_create(request):
     return render(request, "scheduling/appointment_form.html", {"form": form, "slots": slots})
 
 
-@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
+@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR)
 def appointment_detail(request, pk):
     appointment = get_object_or_404(Appointment.objects.select_related("patient", "doctor", "planned_service", "created_by"), pk=pk)
     if request.user.role == User.Role.DOCTOR and appointment.doctor_id != request.user.id:

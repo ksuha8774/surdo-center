@@ -175,6 +175,19 @@ class SchedulingTests(TestCase):
             )
         self.assertFalse(Appointment.objects.exists())
 
+        with self.assertRaisesMessage(ValidationError, "Архивного пациента нельзя записать"):
+            Appointment.objects.create(
+                patient=stale_patient,
+                doctor=self.doctor,
+                created_by=self.admin,
+                planned_service=self.service,
+                planned_price=self.service.price,
+                appointment_date=self.date,
+                start_time=time(9),
+                end_time=time(10),
+            )
+        self.assertFalse(Appointment.objects.exists())
+
     def test_create_move_and_cancel_views_refresh_availability(self):
         self.client.force_login(self.admin)
         create_response = self.client.post(reverse("scheduling:create"), {

@@ -3,8 +3,8 @@
 {% block content %}
 <a class="back-link" href="{{ patient_list_url }}">← К списку пациентов</a>
 <div class="page-heading">
-  <div><p class="eyebrow">Карточка пациента</p><h1>{{ patient.full_name }}</h1><p>{{ patient.birth_date|date:'d.m.Y' }} · {{ patient.get_sex_display }} · {{ patient.phone }} · {% if patient.is_archived %}<span class="badge status-archived">В архиве</span>{% else %}<span class="badge status-active">Активна</span>{% endif %}</p></div>
-  <div class="actions">{% if is_administrator %}<a class="btn btn-secondary" href="{% url 'patients:edit' patient.pk %}?return_to={{ patient_list_url|urlencode }}">Редактировать</a>{% if not patient.is_archived %}<a class="btn btn-primary" href="{% url 'scheduling:create' %}?patient={{ patient.pk }}">Записать на приём</a>{% endif %}{% endif %}</div>
+  <div><p class="eyebrow">Карточка пациента</p><h1>{{ patient.full_name }}</h1><p>{{ patient.birth_date|date:'d.m.Y' }} · {{ patient.get_sex_display }} · {{ patient.phone }} · {% if patient.is_archived %}<span class="badge status-archived">В архиве</span>{% else %}<span class="badge status-active">Активен</span>{% endif %}</p></div>
+  <div class="actions">{% if is_administrator %}{% if not patient.is_archived %}<a class="btn btn-secondary" href="{% url 'patients:edit' patient.pk %}?return_to={{ patient_list_url|urlencode }}">Редактировать</a><a class="btn btn-primary" href="{% url 'scheduling:create' %}?patient={{ patient.pk }}">Записать на приём</a>{% endif %}{% endif %}</div>
 </div>
 {% if patient.is_archived %}
 <section class="panel archive-summary">
@@ -17,11 +17,31 @@
   {% if is_administrator %}<form method="post" action="{% url 'patients:restore' patient.pk %}" onsubmit="return confirm('Восстановить карточку пациента?');">{% csrf_token %}<input type="hidden" name="return_to" value="{{ patient_list_url }}"><button class="btn btn-primary" type="submit">Восстановить</button></form>{% endif %}
 </section>
 {% endif %}
-<div class="tabs"><button class="active" data-tab="main">Основные сведения</button><button data-tab="history">История приёмов</button><button data-tab="future">Будущие записи</button></div>
+<div class="tabs"><button class="active" data-tab="main">Основные сведения</button><button data-tab="history">История приёмов</button>{% if is_doctor %}<button data-tab="medical">Медицинская история</button>{% endif %}<button data-tab="future">Будущие записи</button></div>
 <section class="panel tab-panel active" data-panel="main">
-  <dl class="details"><div><dt>Статус карточки</dt><dd>{% if patient.is_archived %}В архиве{% else %}Активна{% endif %}</dd></div><div><dt>Телефон</dt><dd>{{ patient.phone }}</dd></div><div><dt>E-mail</dt><dd>{{ patient.email|default:'Не указан' }}</dd></div><div><dt>Адрес</dt><dd>{{ patient.full_address }}</dd></div><div><dt>Карточка создана</dt><dd>{{ patient.created_at|date:'d.m.Y H:i' }}</dd></div>{% if patient.note %}<div class="full"><dt>Служебное примечание</dt><dd>{{ patient.note }}</dd></div>{% endif %}</dl>
+  <dl class="details"><div><dt>Статус карточки</dt><dd>{% if patient.is_archived %}В архиве{% else %}Активен{% endif %}</dd></div><div><dt>Телефон</dt><dd>{{ patient.phone }}</dd></div><div><dt>E-mail</dt><dd>{{ patient.email|default:'Не указан' }}</dd></div><div><dt>Адрес</dt><dd>{{ patient.full_address }}</dd></div><div><dt>Карточка создана</dt><dd>{{ patient.created_at|date:'d.m.Y H:i' }}</dd></div>{% if patient.note %}<div class="full"><dt>Служебное примечание</dt><dd>{{ patient.note }}</dd></div>{% endif %}</dl>
   {% if is_administrator and not patient.is_archived %}<details class="archive-control"><summary>Архивировать карточку</summary><form method="post" action="{% url 'patients:archive' patient.pk %}" onsubmit="return confirm('Архивировать карточку пациента? Это не отменит и не удалит медицинские данные.');">{% csrf_token %}<input type="hidden" name="return_to" value="{{ patient_list_url }}"><label for="{{ archive_form.archive_reason.id_for_label }}">{{ archive_form.archive_reason.label }}</label>{{ archive_form.archive_reason }}<small>Архивирование невозможно, пока есть запланированный или начатый приём.</small><button class="btn btn-danger" type="submit">Архивировать</button></form></details>{% endif %}
 </section>
+{% if is_administrator and archive_events %}<section class="panel"><h2>История архивирования</h2>{% for event in archive_events %}<div class="history-note"><strong>{{ event.get_action_display }} · {{ event.performed_at|date:'d.m.Y H:i' }}</strong><p>{{ event.performed_by.full_name|default:'Исполнитель не указан' }}{% if event.reason %} · {{ event.reason }}{% endif %}</p></div>{% endfor %}</section>{% endif %}
 <section class="panel tab-panel" data-panel="history">{% for item in past_appointments %}<a class="record" href="{% url 'scheduling:detail' item.pk %}"><div><strong>{{ item.appointment_date|date:'d.m.Y' }} · {{ item.planned_service.service_name }}</strong><small>{{ item.doctor.full_name }}</small></div><span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span></a>{% empty %}<div class="empty-state"><b>История пока пуста</b></div>{% endfor %}</section>
+{% if is_doctor %}<section class="panel tab-panel" data-panel="medical">
+  {% for visit in medical_history %}
+  <article class="medical-history-item">
+    <div class="panel-heading"><div><p class="eyebrow">{{ visit.appointment.appointment_date|date:'d.m.Y' }} · {{ visit.appointment.planned_service.service_name }}</p><h2>{{ visit.appointment.doctor.full_name }}</h2></div>{% if visit.completed_at %}<span class="badge status-completed">Завершён</span>{% else %}<span class="badge status-in_progress">В процессе</span>{% endif %}</div>
+    <dl class="details">
+      {% if visit.complaints %}<div class="full"><dt>Жалобы</dt><dd>{{ visit.complaints }}</dd></div>{% endif %}
+      {% if visit.anamnesis %}<div class="full"><dt>Анамнез</dt><dd>{{ visit.anamnesis }}</dd></div>{% endif %}
+      {% if visit.examination_result %}<div class="full"><dt>Результаты осмотра</dt><dd>{{ visit.examination_result }}</dd></div>{% endif %}
+      {% if visit.conclusion %}<div class="full"><dt>Заключение</dt><dd>{{ visit.conclusion }}</dd></div>{% endif %}
+      {% if visit.recommendations %}<div class="full"><dt>Рекомендации</dt><dd>{{ visit.recommendations }}</dd></div>{% endif %}
+    </dl>
+    {% for exam in visit.audiometry_exams.all %}
+    <div class="audiometry-summary"><strong>Аудиометрия · {{ exam.exam_datetime|date:'d.m.Y H:i' }}</strong>{% if exam.equipment_model %}<small>Оборудование: {{ exam.equipment_model }}</small>{% endif %}{% if exam.comment %}<p>{{ exam.comment }}</p>{% endif %}
+      {% if exam.measurements.all %}<div class="table-wrap"><table><thead><tr><th>Ухо</th><th>Проводимость</th><th>Частота</th><th>Порог</th></tr></thead><tbody>{% for measurement in exam.measurements.all %}<tr><td>{{ measurement.get_ear_display }}</td><td>{{ measurement.get_conduction_type_display }}</td><td>{{ measurement.frequency_hz }} Гц</td><td>{% if measurement.no_response %}Нет ответа до {{ measurement.no_response_level_db_hl }} дБ{% else %}{{ measurement.threshold_db_hl }} дБ HL{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+    </div>
+    {% empty %}<p class="muted">Аудиометрические обследования не проводились.</p>{% endfor %}
+  </article>
+  {% empty %}<div class="empty-state"><b>Медицинская история пока пуста</b></div>{% endfor %}
+</section>{% endif %}
 <section class="panel tab-panel" data-panel="future">{% for item in future_appointments %}<a class="record" href="{% url 'scheduling:detail' item.pk %}"><div><strong>{{ item.appointment_date|date:'d.m.Y' }} в {{ item.start_time|time:'H:i' }}</strong><small>{{ item.doctor.full_name }} · {{ item.planned_service.service_name }}</small></div><span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span></a>{% empty %}<div class="empty-state"><b>Будущих записей нет</b></div>{% endfor %}</section>
 {% endblock %}

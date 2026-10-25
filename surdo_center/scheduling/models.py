@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.postgres.constraints import ExclusionConstraint
 from django.contrib.postgres.fields import DateTimeRangeField, RangeOperators
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import DateTimeField, ExpressionWrapper, F, Func, Q, Value
 
 
@@ -186,6 +186,21 @@ class Appointment(models.Model):
             raise ValidationError({"end_time": "Время окончания должно быть позже времени начала."})
         if bool(self.external_system_id) != bool(self.external_booking_id):
             raise ValidationError("Внешняя система и внешний ID должны быть заполнены вместе.")
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.patient_id:
+            from patients.models import Patient
+
+            with transaction.atomic():
+                patient = Patient.objects.select_for_update().get(pk=self.patient_id)
+                if patient.is_archived:
+                    raise ValidationError({
+                        "patient": "Архивного пациента нельзя записать на новый приём. "
+                        "Сначала восстановите его карточку."
+                    })
+                self.patient = patient
+                return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.appointment_date:%d.%m.%Y} {self.start_time:%H:%M} — {self.patient}"

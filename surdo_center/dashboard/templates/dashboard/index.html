@@ -1,37 +1,81 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if is_administrator %}
+<div class="admin-dashboard">
+  <header class="admin-welcome">
+    <h1>Добрый день,<br>{{ user.first_name|default:user.username }}!</h1>
+  </header>
+
+  <section class="quick-actions admin-quick-actions" aria-label="Быстрые действия">
+    <a href="{% url 'scheduling:create' %}"><b>Новая запись</b></a>
+    <a class="quick-action-accent" href="{% url 'patients:create' %}"><b>Добавить пациента</b></a>
+    <a href="{% url 'scheduling:schedule' %}"><b>Открыть расписание</b></a>
+    <a href="{% url 'patients:list' %}"><b>Список пациентов</b></a>
+  </section>
+
+  <div class="admin-dashboard-grid">
+    <section class="panel admin-appointments">
+      <div class="panel-heading">
+        <h2>Ближайшие записи</h2>
+        <a href="{% url 'scheduling:list' %}">Открыть все записи</a>
+      </div>
+      {% if upcoming %}
+      <div class="appointment-feed">
+        {% for item in upcoming %}
+        <a class="appointment-row" href="{% url 'scheduling:detail' item.pk %}">
+          <time>{{ item.start_time|time:'H:i' }}</time>
+          <span class="timeline-dot"></span>
+          <div><strong>{{ item.patient.full_name }}</strong><small>{{ item.planned_service.service_name }}{% if item.comment %} · {{ item.comment|truncatechars:60 }}{% endif %}</small></div>
+          <span class="doctor-name">{{ item.doctor.full_name }}</span>
+          <span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><b>На ближайшее время записей нет</b><small>Новые записи появятся здесь автоматически.</small></div>
+      {% endif %}
+    </section>
+
+    <aside class="panel today-panel">
+      <div class="today-panel-heading">
+        <h2>Сегодня</h2>
+        <time datetime="{{ today|date:'Y-m-d' }}">{{ today|date:'j E Y' }}</time>
+      </div>
+      <div class="today-summary">
+        <div><span>Записей сегодня</span><strong>{{ today_total }}</strong></div>
+        <div><span>Новых пациентов</span><strong>{{ new_patients_today }}</strong></div>
+        <div><span>Завершено приёмов</span><strong>{{ today_completed }}</strong></div>
+        <div><span>Отменено записей</span><strong>{{ today_cancelled }}</strong></div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% else %}
 <div class="page-heading">
   <div>
-    <p class="eyebrow">{% if is_doctor %}Рабочее место врача{% elif is_director %}Панель директора{% else %}Рабочее место администратора{% endif %}</p>
-    <h1>{% if is_doctor %}Приёмы на сегодня{% elif is_director %}Работа центра сегодня{% else %}Записи и пациенты{% endif %}</h1>
-    <p>{% if is_doctor %}Сразу видно, кто сейчас и кто следующий.{% elif is_director %}Только основные показатели без перегруженной аналитики.{% else %}Быстрый доступ к ежедневным операциям регистратуры.{% endif %}</p>
+    <p class="eyebrow">{% if is_doctor %}Рабочее место врача{% else %}Панель директора{% endif %}</p>
+    <h1>{% if is_doctor %}Приёмы на сегодня{% else %}Работа центра сегодня{% endif %}</h1>
+    <p>{% if is_doctor %}Сразу видно, кто сейчас и кто следующий.{% else %}Только основные показатели без перегруженной аналитики.{% endif %}</p>
   </div>
-  {% if is_administrator %}<a class="btn btn-primary" href="{% url 'scheduling:create' %}">Новая запись</a>{% endif %}
 </div>
 
 <section class="metrics">
   <article><span>Сегодня</span><strong>{{ today_total }}</strong><small>{% if is_doctor %}приёмов{% else %}записей{% endif %}</small></article>
   <article><span>Завершено</span><strong>{{ today_completed }}</strong><small>на текущий момент</small></article>
   {% if is_director %}<article><span>Работают</span><strong>{{ working_doctors }}</strong><small>врачей по графику</small></article>
-  {% else %}<article><span>Осталось</span><strong>{{ today_remaining }}</strong><small>{% if is_doctor %}приёмов{% else %}запланированных записей{% endif %}</small></article>{% endif %}
+  {% else %}<article><span>Осталось</span><strong>{{ today_remaining }}</strong><small>приёмов</small></article>{% endif %}
 </section>
 
-{% if is_administrator %}
+{% if is_director %}
 <section class="quick-actions">
-  <a href="{% url 'patients:create' %}"><span class="quick-icon">＋</span><div><b>Добавить пациента</b><small>Создать новую карточку</small></div></a>
-  <a href="{% url 'patients:list' %}"><span class="quick-icon">⌕</span><div><b>Найти пациента</b><small>По ФИО или телефону</small></div></a>
-  <a href="{% url 'scheduling:schedule' %}"><span class="quick-icon">▦</span><div><b>Открыть расписание</b><small>Посмотреть доступность врачей</small></div></a>
-</section>
-{% elif is_director %}
-<section class="quick-actions">
-  <a href="{% url 'scheduling:schedule' %}"><span class="quick-icon">▦</span><div><b>Графики врачей</b><small>Рабочие дни и интервалы</small></div></a>
-  <a href="{% url 'billing:services' %}"><span class="quick-icon">₽</span><div><b>Справочник услуг</b><small>Актуальные цены и статусы</small></div></a>
-  <a href="{% url 'scheduling:list' %}"><span class="quick-icon">▤</span><div><b>Все записи</b><small>Просмотр работы центра</small></div></a>
+  <a href="{% url 'scheduling:schedule' %}"><div><b>Графики врачей</b><small>Рабочие дни и интервалы</small></div></a>
+  <a href="{% url 'billing:services' %}"><div><b>Справочник услуг</b><small>Актуальные цены и статусы</small></div></a>
 </section>
 {% endif %}
 
+{% if is_doctor %}
 <section class="panel">
-  <div class="panel-heading"><div><p class="eyebrow">Ближайшее время</p><h2>{% if is_doctor %}Мои пациенты{% else %}Ближайшие записи{% endif %}</h2></div><a href="{% url 'scheduling:list' %}">Открыть журнал</a></div>
+  <div class="panel-heading"><div><p class="eyebrow">Ближайшее время</p><h2>Мои пациенты</h2></div><a href="{% url 'scheduling:list' %}">Открыть журнал</a></div>
   {% if upcoming %}
   <div class="appointment-feed">
     {% for item in upcoming %}
@@ -39,11 +83,12 @@
       <time>{{ item.start_time|time:'H:i' }}</time>
       <span class="timeline-dot"></span>
       <div><strong>{{ item.patient.full_name }}</strong><small>{{ item.planned_service.service_name }}{% if item.comment %} · {{ item.comment|truncatechars:60 }}{% endif %}</small></div>
-      {% if not is_doctor %}<span class="doctor-name">{{ item.doctor.full_name }}</span>{% endif %}
       <span class="badge status-{{ item.status }}">{{ item.get_status_display }}</span>
     </a>
     {% endfor %}
   </div>
-  {% else %}<div class="empty-state"><span>✓</span><b>На ближайшее время записей нет</b><small>Новые записи появятся здесь автоматически.</small></div>{% endif %}
+  {% else %}<div class="empty-state"><b>На ближайшее время записей нет</b><small>Новые записи появятся здесь автоматически.</small></div>{% endif %}
 </section>
+{% endif %}
+{% endif %}
 {% endblock %}
