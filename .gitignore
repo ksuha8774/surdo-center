@@ -41,6 +41,7 @@ temp/
 *.tmp
 *.temp
 *.docx
+ER_*.drawio
 *.drawio.svg
 ~$*
 ~WRL*
