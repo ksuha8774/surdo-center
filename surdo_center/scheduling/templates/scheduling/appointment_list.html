@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Записи · АудиоМед{% endblock %}
+{% block title %}Записи · Медицинский центр «ЮНА»{% endblock %}
 {% block content %}
 <div class="page-heading"><div><p class="eyebrow">Журнал</p><h1>{% if is_doctor %}Мои приёмы{% else %}Записи на приём{% endif %}</h1><p>Актуальные и завершённые записи сохраняются в общей истории.</p></div>{% if is_administrator %}<a class="btn btn-primary" href="{% url 'scheduling:create' %}">Новая запись</a>{% endif %}</div>
 <form class="filters" method="get"><label class="search-field"><span>Пациент</span><input type="search" name="q" value="{{ query }}" placeholder="Фамилия или телефон"></label><label><span>Статус</span><select name="status"><option value="">Все статусы</option>{% for value, label in statuses %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button class="btn btn-primary">Найти</button><a class="btn btn-secondary" href="{% url 'scheduling:list' %}">Сбросить</a></form>

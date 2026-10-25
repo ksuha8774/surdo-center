@@ -1,17 +1,160 @@
+
 {% extends 'base.html' %}
-{% block title %}{{ title }} · АудиоМед{% endblock %}
+{% load static %}
+
+{% block title %}{{ title }} · Медицинский центр «ЮНА»{% endblock %}
+
 {% block content %}
 <div class="form-shell">
-  <a class="back-link" href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">← Назад</a>
-  <div class="page-heading compact"><div><p class="eyebrow">Карточка пациента</p><h1>{{ title }}</h1><p>Обязательные поля отмечены звёздочкой.</p></div></div>
-  <form method="post" class="panel form-panel" novalidate data-validate>{% csrf_token %}
-    {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
-    <fieldset><legend>Основные сведения</legend><div class="form-grid">
-      {% for field in form %}{% if field.name == 'city' %}</div></fieldset><fieldset><legend>Адрес</legend><div class="form-grid">{% endif %}
-      <div class="field {% if field.errors %}invalid{% endif %} {% if field.name == 'note' %}wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<b>*</b>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
-      {% endfor %}
-    </div></fieldset>
-    <div class="form-actions"><a class="btn btn-secondary" href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">Отменить</a><button class="btn btn-primary" type="submit">Сохранить</button></div>
-  </form>
+
+    <a class="back-link"
+       href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">
+        ← Назад
+    </a>
+
+    <div class="page-heading compact">
+        <div>
+            <p class="eyebrow">Карточка пациента</p>
+            <h1>{{ title }}</h1>
+            <p>Обязательные поля отмечены звёздочкой.</p>
+        </div>
+    </div>
+
+    <form method="post"
+          class="panel form-panel"
+          novalidate
+          data-validate
+          data-duplicate-url="{% url 'patients:duplicates' %}"
+          data-patient-id="{{ patient.pk|default:'' }}">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-summary">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Основные сведения -->
+        <fieldset>
+            <legend>Основные сведения</legend>
+
+            <div class="form-grid">
+
+                {% for field in form %}
+
+                    {% if field.name != 'confirm_duplicate' %}
+
+                        {% if field.name == 'city' %}
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Адрес</legend>
+                            <div class="form-grid">
+                        {% endif %}
+
+                        <div class="field {% if field.errors %}invalid{% endif %} {% if field.name == 'note' %}wide{% endif %}">
+
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <b>*</b>
+                                {% endif %}
+                            </label>
+
+                            {{ field }}
+
+                            {% for error in field.errors %}
+                                <small class="error">
+                                    {{ error }}
+                                </small>
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </div>
+        </fieldset>
+
+        <!-- Предупреждение о возможных дубликатах -->
+        
+        <div id="duplicate-warning"
+            class="panel"
+            aria-live="polite"
+            {% if not form.possible_duplicates %}hidden{% endif %}>
+
+            <h3 id="duplicate-title">
+                {% if form.exact_duplicate %}
+                    Пациент уже зарегистрирован
+                {% else %}
+                    Найдены похожие пациенты
+                {% endif %}
+            </h3>
+
+            <p id="duplicate-description">
+                {% if form.exact_duplicate %}
+                    ФИО, дата рождения и телефон полностью совпадают.
+                    Создание повторной карточки запрещено.
+                    Откройте существующую карточку пациента.
+                {% else %}
+                    Проверьте найденные карточки перед регистрацией.
+                {% endif %}
+            </p>
+
+            <ul id="duplicate-list">
+                {% for duplicate in form.possible_duplicates %}
+                    <li>
+                        <a href="{% url 'patients:detail' duplicate.pk %}"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                            {{ duplicate.full_name }}
+                        </a>
+                        — {{ duplicate.birth_date|date:"d.m.Y" }},
+                        {{ duplicate.phone }}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div id="duplicate-confirm-box"
+                class="duplicate-confirm"
+                {% if form.exact_duplicate %}hidden{% endif %}>
+
+                <label for="{{ form.confirm_duplicate.id_for_label }}">
+                    {{ form.confirm_duplicate }}
+                    {{ form.confirm_duplicate.label }}
+                </label>
+
+                {% for error in form.confirm_duplicate.errors %}
+                    <small class="error">{{ error }}</small>
+                {% endfor %}
+
+            </div>
+        </div>
+
+
+        <!-- Кнопки управления -->
+        <div class="form-actions">
+
+            <a class="btn btn-secondary"
+               href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}">
+                Отменить
+            </a>
+
+            <button class="btn btn-primary" type="submit">
+                Сохранить
+            </button>
+
+        </div>
+
+    </form>
+
 </div>
+
+<script src="{% static 'js/patient_duplicates.js' %}" defer></script>
+
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ patient.full_name }} · АудиоМед{% endblock %}
+{% block title %}{{ patient.full_name }} · Медицинский центр «ЮНА»{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'patients:list' %}">← К списку пациентов</a>
 <div class="page-heading"><div><p class="eyebrow">Карточка пациента</p><h1>{{ patient.full_name }}</h1><p>{{ patient.birth_date|date:'d.m.Y' }} · {{ patient.get_sex_display }} · {{ patient.phone }}</p></div><div class="actions">{% if is_administrator %}<a class="btn btn-secondary" href="{% url 'patients:edit' patient.pk %}">Редактировать</a><a class="btn btn-primary" href="{% url 'scheduling:create' %}?patient={{ patient.pk }}">Записать на приём</a>{% endif %}</div></div>
