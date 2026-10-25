@@ -6,13 +6,14 @@
   {% if is_administrator %}<a class="btn btn-primary" href="{% url 'patients:create' %}">Добавить пациента</a>{% endif %}
 </div>
 <nav class="filter-switch" aria-label="Статус карточек">
-  <a class="{% if selected_scope == 'active' %}active{% endif %}" href="?scope=active{% if query %}&amp;q={{ query|urlencode }}{% endif %}">Активные</a>
-  <a class="{% if selected_scope == 'archived' %}active{% endif %}" href="?scope=archived{% if query %}&amp;q={{ query|urlencode }}{% endif %}">Архивные</a>
-  <a class="{% if selected_scope == 'all' %}active{% endif %}" href="?scope=all{% if query %}&amp;q={{ query|urlencode }}{% endif %}">Все</a>
+  <a class="{% if selected_scope == 'active' %}active{% endif %}" href="?scope=active{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if birth_date_value %}&amp;birth_date={{ birth_date_value }}{% endif %}">Активные</a>
+  <a class="{% if selected_scope == 'archived' %}active{% endif %}" href="?scope=archived{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if birth_date_value %}&amp;birth_date={{ birth_date_value }}{% endif %}">Архивные</a>
+  <a class="{% if selected_scope == 'all' %}active{% endif %}" href="?scope=all{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if birth_date_value %}&amp;birth_date={{ birth_date_value }}{% endif %}">Все</a>
 </nav>
 <form class="filters" method="get">
   <input type="hidden" name="scope" value="{{ selected_scope }}">
-  <label class="search-field"><span>Поиск пациента</span><input type="search" name="q" value="{{ query }}" placeholder="Например, Иванов или +7 999"></label>
+  <label class="search-field"><span>ФИО или телефон</span><input type="search" name="q" value="{{ query }}" placeholder="Например, Иванов Иван или +7 999"></label>
+  <label><span>Дата рождения</span><input type="date" name="birth_date" value="{{ birth_date_value }}"></label>
   <button class="btn btn-primary">Найти</button>
   <a class="btn btn-secondary" href="{% url 'patients:list' %}?scope={{ selected_scope }}">Сбросить поиск</a>
 </form>
@@ -22,11 +23,18 @@
     <thead><tr><th>Пациент</th><th>Статус</th><th>Дата рождения</th><th>Телефон</th><th>Город</th><th></th></tr></thead>
     <tbody>{% for patient in patients %}<tr>
       <td><a class="table-primary" href="{% url 'patients:detail' patient.pk %}?return_to={{ request.get_full_path|urlencode }}">{{ patient.full_name }}</a></td>
-      <td>{% if patient.is_archived %}<span class="badge status-archived">В архиве</span>{% else %}<span class="badge status-active">Активна</span>{% endif %}</td>
-      <td>{{ patient.birth_date|date:'d.m.Y' }}</td><td>{{ patient.phone }}</td><td>{{ patient.city }}</td>
+      <td>{% if patient.is_archived %}<span class="badge status-archived">В архиве</span>{% else %}<span class="badge status-active">Активен</span>{% endif %}</td>
+      <td>{{ patient.birth_date|date:'d.m.Y' }}</td><td>{{ patient.phone }}</td><td>{{ patient.city|default:'Не указан' }}</td>
       <td><a href="{% url 'patients:detail' patient.pk %}?return_to={{ request.get_full_path|urlencode }}">Открыть</a></td>
     </tr>{% endfor %}</tbody>
   </table></div>
   {% else %}<div class="empty-state"><span>⌕</span><b>Пациенты не найдены</b><small>Измените запрос или выбранный раздел картотеки.</small></div>{% endif %}
 </section>
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Страницы списка пациентов">
+  {% if page_obj.has_previous %}<a class="btn btn-secondary" href="?{{ filter_query }}&amp;page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}
+  <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-secondary" href="?{{ filter_query }}&amp;page={{ page_obj.next_page_number }}">Далее →</a>{% endif %}
+</nav>
+{% endif %}
 {% endblock %}

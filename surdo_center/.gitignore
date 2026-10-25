@@ -1,8 +1,56 @@
+# Python environments and caches
 .venv/
+venv/
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local configuration and credentials
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.pgpass
+pgpass.conf
+
+# Local databases, backups, logs and runtime data
 db.sqlite3
+*.sqlite
 *.sqlite3
+*.db
 .local-backups/
+backups/
 staticfiles/
+media/
+*.log
+*.bak
+*.backup
+*.dump
+
+# Editors, operating-system files and temporary data
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+~$*
+
+# Packaging and local archives
+build/
+dist/
+*.egg-info/
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz

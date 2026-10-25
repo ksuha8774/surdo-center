@@ -1,7 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const menu = document.querySelector("[data-menu]");
-  const sidebar = document.querySelector("#sidebar");
-  menu?.addEventListener("click", () => sidebar?.classList.toggle("open"));
+  const navigation = document.querySelector("#primary-navigation");
+  const closeNavigation = () => {
+    navigation?.classList.remove("open");
+    menu?.setAttribute("aria-expanded", "false");
+  };
+  menu?.addEventListener("click", () => {
+    const isOpen = navigation?.classList.toggle("open") ?? false;
+    menu.setAttribute("aria-expanded", String(isOpen));
+  });
+  navigation?.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeNavigation));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeNavigation();
+  });
 
   document.querySelectorAll("[data-confirm]").forEach((form) => {
     form.addEventListener("submit", (event) => {

@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from accounts.models import User
+from patients.models import Patient
 from scheduling.models import Appointment, DoctorScheduleTemplate
 
 
@@ -29,13 +30,14 @@ def dashboard(request):
             "today_total": appointments.count(),
             "today_completed": appointments.filter(status=Appointment.Status.COMPLETED).count(),
             "working_doctors": working_doctors,
-            "upcoming": appointments.order_by("start_time")[:8],
         })
     else:
         context.update({
             "today_total": appointments.count(),
             "today_remaining": appointments.filter(status=Appointment.Status.PLANNED).count(),
             "today_completed": appointments.filter(status=Appointment.Status.COMPLETED).count(),
+            "today_cancelled": appointments.filter(status=Appointment.Status.CANCELLED).count(),
+            "new_patients_today": Patient.objects.filter(created_at__date=today).count(),
             "upcoming": appointments.filter(status__in=(Appointment.Status.PLANNED, Appointment.Status.IN_PROGRESS)).order_by("start_time")[:8],
         })
     return render(request, "dashboard/index.html", context)

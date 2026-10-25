@@ -5,6 +5,7 @@ from django import forms
 from .models import Patient
 
 from .services import (
+    DuplicatePatientError,
     find_possible_duplicates,
     find_exact_duplicate,
     normalize_phone_for_search,
@@ -27,6 +28,15 @@ class PatientForm(forms.ModelForm):
         required=False,
         label="Совпадения проверены. Это другой пациент.",
     )
+
+    def clean_last_name(self):
+        return " ".join(self.cleaned_data["last_name"].split())
+
+    def clean_first_name(self):
+        return " ".join(self.cleaned_data["first_name"].split())
+
+    def clean_middle_name(self):
+        return " ".join(self.cleaned_data.get("middle_name", "").split())
 
     def clean_phone(self):
         value = self.cleaned_data["phone"]
@@ -87,18 +97,7 @@ class PatientForm(forms.ModelForm):
         if exact:
             self.exact_duplicate = exact
             self.possible_duplicates = [exact]
-
-            guidance = (
-                "Карточка находится в архиве — восстановите её, а не создавайте новую."
-                if exact.is_archived
-                else "Используйте существующую карточку."
-            )
-            self.add_error(
-                None,
-                "Пациент с такими ФИО, датой рождения "
-                "и телефоном уже зарегистрирован. "
-                + guidance,
-            )
+            self.add_error(None, DuplicatePatientError(exact))
             return data
 
         # 2. Затем ищем частичные совпадения.

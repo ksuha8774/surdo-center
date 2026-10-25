@@ -3,7 +3,7 @@ from urllib.parse import urlencode, urlsplit
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,15 +14,20 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import User
 from accounts.permissions import role_required
+from medical.models import MedicalVisit
 
 from .forms import PatientArchiveForm, PatientForm
 from .models import Patient
 from .services import (
+    DuplicatePatientError,
     archive_patient,
     find_exact_duplicate,
     find_possible_duplicates,
     normalize_phone_for_search,
+    phones_match,
     restore_patient,
+    save_patient_form,
+    search_patients,
 )
 
 
@@ -40,9 +45,10 @@ def _patient_list_url(request):
         return default
     return candidate
 
-@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
+@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR)
 def patient_list(request):
     query = request.GET.get("q", "").strip()
+    birth_date_value = request.GET.get("birth_date", "").strip()
     scope = request.GET.get("scope", "active")
     if scope not in PATIENT_SCOPES:
         scope = "active"
@@ -51,17 +57,30 @@ def patient_list(request):
         patients = patients.filter(is_archived=False)
     elif scope == "archived":
         patients = patients.filter(is_archived=True)
-    if query:
-        patients = patients.filter(
-            Q(last_name__icontains=query)
-            | Q(first_name__icontains=query)
-            | Q(middle_name__icontains=query)
-            | Q(phone__icontains=query)
-        )
+    patients = search_patients(patients, query)
+    if birth_date_value:
+        try:
+            patients = patients.filter(birth_date=date.fromisoformat(birth_date_value))
+        except ValueError:
+            birth_date_value = ""
+
+    page_obj = Paginator(patients, 25).get_page(request.GET.get("page"))
+    filter_query = urlencode({
+        key: value
+        for key, value in {
+            "scope": scope,
+            "q": query,
+            "birth_date": birth_date_value,
+        }.items()
+        if value
+    })
     return render(request, "patients/patient_list.html", {
-        "patients": patients,
+        "patients": page_obj,
+        "page_obj": page_obj,
         "query": query,
+        "birth_date_value": birth_date_value,
         "selected_scope": scope,
+        "filter_query": filter_query,
     })
 
 
@@ -69,9 +88,15 @@ def patient_list(request):
 def patient_create(request):
     form = PatientForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        patient = form.save()
-        messages.success(request, "Карточка пациента создана.")
-        return redirect("patients:detail", pk=patient.pk)
+        try:
+            patient = save_patient_form(form)
+        except DuplicatePatientError as error:
+            form.exact_duplicate = error.patient
+            form.possible_duplicates = [error.patient]
+            form.add_error(None, error)
+        else:
+            messages.success(request, "Карточка пациента создана.")
+            return redirect("patients:detail", pk=patient.pk)
     return render(request, "patients/patient_form.html", {
         "form": form,
         "title": "Новый пациент",
@@ -79,7 +104,7 @@ def patient_create(request):
     })
 
 
-@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
+@role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR)
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     today = timezone.localdate()
@@ -90,6 +115,14 @@ def patient_detail(request, pk):
     future_appointments = appointments.filter(appointment_date__gte=today).order_by(
         "appointment_date", "start_time"
     )
+    medical_history = MedicalVisit.objects.none()
+    if request.user.is_superuser or request.user.role == User.Role.DOCTOR:
+        medical_history = (
+            MedicalVisit.objects.filter(appointment__patient=patient)
+            .select_related("appointment__doctor", "appointment__planned_service")
+            .prefetch_related("audiometry_exams__measurements")
+            .order_by("-appointment__appointment_date", "-appointment__start_time")
+        )
     return render(
         request,
         "patients/patient_detail.html",
@@ -97,7 +130,9 @@ def patient_detail(request, pk):
             "patient": patient,
             "past_appointments": past_appointments,
             "future_appointments": future_appointments,
+            "medical_history": medical_history,
             "archive_form": PatientArchiveForm(),
+            "archive_events": patient.archive_events.select_related("performed_by"),
             "patient_list_url": _patient_list_url(request),
         },
     )
@@ -108,11 +143,20 @@ def patient_edit(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     list_url = _patient_list_url(request)
     detail_url = f"{reverse('patients:detail', args=(pk,))}?{urlencode({'return_to': list_url})}"
+    if patient.is_archived:
+        messages.error(request, "Архивную карточку нельзя редактировать. Сначала восстановите пациента.")
+        return redirect(detail_url)
     form = PatientForm(request.POST or None, instance=patient)
     if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Карточка пациента обновлена.")
-        return redirect(detail_url)
+        try:
+            save_patient_form(form)
+        except DuplicatePatientError as error:
+            form.exact_duplicate = error.patient
+            form.possible_duplicates = [error.patient]
+            form.add_error(None, error)
+        else:
+            messages.success(request, "Карточка пациента обновлена.")
+            return redirect(detail_url)
     return render(
         request,
         "patients/patient_form.html",
@@ -213,10 +257,7 @@ def patient_duplicates(request):
             and patient.birth_date == birth_date
         )
 
-        same_phone = (
-            normalized_phone is not None
-            and patient.phone == normalized_phone
-        )
+        same_phone = normalized_phone is not None and phones_match(patient.phone, normalized_phone)
 
         results.append({
             "id": patient.pk,
