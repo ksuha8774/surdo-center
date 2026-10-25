@@ -101,7 +101,7 @@ pg_restore --list .local-backups\before_migrate.backup
 .\.venv\Scripts\python.exe manage.py migrate
 ```
 
-Архитектурные решения и открытые вопросы интеграции описаны в `docs/database_design.md`. Актуальная редактируемая ER-диаграмма находится уровнем выше проекта в файле `ER_диаграмма_АСУ_сурдологического_центра_актуальная.drawio`.
+Архитектурные решения и открытые вопросы интеграции описаны в `docs/database_design.md`.
 
 ## Аудит дублей пациентов
 
