@@ -224,6 +224,102 @@ class SchedulingTests(TestCase):
         self.assertIn("10:00", starts_after_cancel)
 
 
+class ScheduleManagementTests(TestCase):
+    def setUp(self):
+        self.director = User.objects.create_user(
+            username="director-schedule", password="pass12345", role=User.Role.DIRECTOR,
+        )
+        self.admin = User.objects.create_user(
+            username="admin-schedule", password="pass12345", role=User.Role.ADMINISTRATOR,
+        )
+        doctor_user = User.objects.create_user(
+            username="managed-doctor", password="pass12345", role=User.Role.DOCTOR,
+        )
+        self.doctor = Doctor.objects.create(user=doctor_user, specialization="Сурдолог")
+        self.service = Service.objects.create(
+            service_name="Короткая консультация", price=1000, duration_minutes=30,
+        )
+
+    def test_director_can_create_schedule_for_multiple_weekdays(self):
+        self.client.force_login(self.director)
+        response = self.client.post(reverse("scheduling:schedule_weekly"), {
+            "doctor": self.doctor.pk,
+            "weekdays": ["0", "1", "2", "3", "4"],
+            "start_time": "09:00",
+            "end_time": "17:00",
+            "booking_step_minutes": "15",
+            "valid_from": timezone.localdate().isoformat(),
+            "valid_to": "",
+        })
+        self.assertRedirects(response, reverse("scheduling:schedule"))
+        templates = DoctorScheduleTemplate.objects.filter(doctor=self.doctor, is_active=True)
+        self.assertEqual(templates.count(), 5)
+        self.assertEqual(set(templates.values_list("weekday", flat=True)), {0, 1, 2, 3, 4})
+
+    def test_new_schedule_replaces_overlapping_active_rule(self):
+        existing = DoctorScheduleTemplate.objects.create(
+            doctor=self.doctor, weekday=0, start_time=time(9), end_time=time(17),
+            booking_step_minutes=30, valid_from=timezone.localdate(),
+        )
+        self.client.force_login(self.director)
+        response = self.client.post(reverse("scheduling:schedule_weekly"), {
+            "doctor": self.doctor.pk,
+            "weekdays": ["0"],
+            "start_time": "10:00",
+            "end_time": "16:00",
+            "booking_step_minutes": "15",
+            "valid_from": timezone.localdate().isoformat(),
+            "valid_to": "",
+        })
+        self.assertRedirects(response, reverse("scheduling:schedule"))
+        existing.refresh_from_db()
+        self.assertFalse(existing.is_active)
+        replacement = DoctorScheduleTemplate.objects.get(doctor=self.doctor, weekday=0, is_active=True)
+        self.assertEqual((replacement.start_time, replacement.end_time), (time(10), time(16)))
+
+    def test_director_can_add_day_off(self):
+        self.client.force_login(self.director)
+        selected_date = timezone.localdate() + timedelta(days=7)
+        response = self.client.post(reverse("scheduling:schedule_exception"), {
+            "doctor": self.doctor.pk,
+            "exception_date": selected_date.isoformat(),
+            "exception_type": "day_off",
+            "start_time": "",
+            "end_time": "",
+            "reason": "Отпуск",
+        })
+        self.assertRedirects(response, reverse("scheduling:schedule"))
+        item = DoctorScheduleException.objects.get(doctor=self.doctor, exception_date=selected_date)
+        self.assertTrue(item.is_day_off)
+        self.assertEqual(item.reason, "Отпуск")
+
+    def test_administrator_cannot_change_schedule(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("scheduling:schedule_weekly"), {
+            "doctor": self.doctor.pk,
+            "weekdays": ["0"],
+            "start_time": "09:00",
+            "end_time": "17:00",
+            "booking_step_minutes": "15",
+            "valid_from": timezone.localdate().isoformat(),
+            "valid_to": "",
+        })
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(DoctorScheduleTemplate.objects.exists())
+
+    def test_slots_endpoint_explains_missing_schedule(self):
+        self.client.force_login(self.admin)
+        selected_date = timezone.localdate() + timedelta(days=1)
+        response = self.client.get(reverse("scheduling:available_slots"), {
+            "doctor": self.doctor.pk,
+            "service": self.service.pk,
+            "date": selected_date.isoformat(),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["slots"], [])
+        self.assertIn("нет рабочего графика", response.json()["message"])
+
+
 class ConcurrentBookingTests(TransactionTestCase):
     reset_sequences = True
 

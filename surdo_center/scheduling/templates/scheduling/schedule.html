@@ -1,3 +1,79 @@
 {% extends 'base.html' %}
 {% block title %}Расписание · Медицинский центр «ЮНА»{% endblock %}
-{% block content %}<div class="page-heading"><div><p class="eyebrow">Рабочий график</p><h1>{% if is_doctor %}Моё расписание{% else %}Расписание врачей{% endif %}</h1><p>Свободные интервалы рассчитываются из графика и исключений, а не хранятся отдельными слотами.</p></div></div><section class="schedule-grid">{% for doctor in doctors %}<article class="panel doctor-card"><div class="doctor-card-head"><span class="avatar large">{{ doctor.first_name|first }}{{ doctor.last_name|first }}</span><div><h2>{{ doctor.full_name }}</h2><p>{{ doctor.specialization|default:'Врач-сурдолог' }}</p></div></div><div class="schedule-lines">{% for item in schedules %}{% if item.doctor_id == doctor.pk %}<div><span>{{ item.get_weekday_display }}</span><b>{{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}</b><small>шаг {{ item.booking_step_minutes }} мин.</small></div>{% endif %}{% empty %}<p>График не задан.</p>{% endfor %}</div></article>{% endfor %}</section>{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">Рабочий график</p>
+    <h1>{% if is_doctor and not user.is_superuser %}Моё расписание{% else %}Расписание врачей{% endif %}</h1>
+    <p>График определяет дни и время, которые появляются при создании записи пациента.</p>
+  </div>
+</div>
+
+{% if can_manage_schedule %}
+<div class="schedule-tools" aria-label="Управление расписанием">
+  <a class="schedule-tool-button" href="{% url 'scheduling:schedule_weekly' %}">
+    <strong>Настроить рабочий график</strong>
+    <small>Рабочие дни, часы и шаг записи</small>
+  </a>
+  <a class="schedule-tool-button schedule-tool-button-accent" href="{% url 'scheduling:schedule_exception' %}">
+    <strong>Добавить изменение на дату</strong>
+    <small>Выходной, перерыв или дополнительное время</small>
+  </a>
+</div>
+{% endif %}
+
+<section class="schedule-grid">
+  {% for doctor in doctors %}
+  <article class="panel doctor-card">
+    <div class="doctor-card-head">
+      <span class="avatar large">{{ doctor.first_name|first }}{{ doctor.last_name|first }}</span>
+      <div><h2>{{ doctor.full_name }}</h2><p>{{ doctor.specialization|default:'Врач-сурдолог' }}</p></div>
+    </div>
+
+    <div class="schedule-card-section">
+      <h3>Регулярный график</h3>
+      {% if doctor.active_schedules %}
+      <div class="schedule-lines">
+        {% for item in doctor.active_schedules %}
+        <div class="schedule-line">
+          <span>{{ item.get_weekday_display }}</span>
+          <b>{{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}</b>
+          <small>шаг {{ item.booking_step_minutes }} мин.</small>
+          {% if can_manage_schedule %}
+          <form method="post" class="inline-form" data-confirm="Отключить эту строку графика?">
+            {% csrf_token %}<input type="hidden" name="template_id" value="{{ item.pk }}">
+            <button class="text-danger" type="submit" name="action" value="disable_template">Отключить</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<p class="empty-inline">Регулярный график не задан.</p>{% endif %}
+    </div>
+
+    <div class="schedule-card-section">
+      <h3>Предстоящие изменения</h3>
+      {% if doctor.upcoming_exceptions %}
+      <div class="exception-list">
+        {% for item in doctor.upcoming_exceptions %}
+        <div class="exception-row">
+          <div>
+            <strong>{{ item.exception_date|date:'d.m.Y' }}</strong>
+            <span>{% if item.is_day_off %}Выходной{% elif item.is_available %}Дополнительное время{% else %}Закрытый интервал{% endif %}{% if not item.is_day_off %}: {{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}{% endif %}</span>
+            {% if item.reason %}<small>{{ item.reason }}</small>{% endif %}
+          </div>
+          {% if can_manage_schedule %}
+          <form method="post" class="inline-form" data-confirm="Удалить это изменение графика?">
+            {% csrf_token %}<input type="hidden" name="exception_id" value="{{ item.pk }}">
+            <button class="text-danger" type="submit" name="action" value="delete_exception">Удалить</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<p class="empty-inline">Предстоящих изменений нет.</p>{% endif %}
+    </div>
+  </article>
+  {% empty %}<div class="panel empty-state"><b>Активных врачей нет</b></div>{% endfor %}
+</section>
+{% endblock %}

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Медицинский центр «ЮНА»{% endblock %}</title>
   <link rel="icon" type="image/png" href="{% static 'images/yuna-favicon.png' %}?v=20261023">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261025-yuna-5">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261115-tables-1">
 </head>
 <body>
 {% if user.is_authenticated %}
@@ -19,8 +19,7 @@
       <nav class="top-nav" id="primary-navigation" aria-label="Основная навигация">
         <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Главная</a>
         {% if is_administrator or is_doctor %}<a href="{% url 'patients:list' %}" class="{% if request.resolver_match.app_name == 'patients' %}active{% endif %}">Пациенты</a>{% endif %}
-        {% if is_administrator %}<a href="{% url 'scheduling:create' %}" class="{% if request.resolver_match.app_name == 'scheduling' and request.resolver_match.url_name == 'create' %}active{% endif %}">Новая запись</a>{% endif %}
-        {% if is_administrator or is_doctor %}<a href="{% url 'scheduling:list' %}" class="{% if request.resolver_match.app_name == 'scheduling' %}{% if request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'detail' or request.resolver_match.url_name == 'reschedule' %}active{% endif %}{% endif %}">{% if is_doctor and not user.is_superuser %}Мои приёмы{% else %}Записи{% endif %}</a>{% endif %}
+        {% if is_administrator or is_doctor %}<a href="{% url 'scheduling:list' %}" class="{% if request.resolver_match.app_name == 'scheduling' %}{% if request.resolver_match.url_name == 'create' or request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'detail' or request.resolver_match.url_name == 'reschedule' %}active{% endif %}{% endif %}">{% if is_doctor and not user.is_superuser %}Мои приёмы{% else %}Записи{% endif %}</a>{% endif %}
         <a href="{% url 'scheduling:schedule' %}" class="{% if request.resolver_match.app_name == 'scheduling' and request.resolver_match.url_name == 'schedule' %}active{% endif %}">{% if is_doctor and not user.is_superuser %}Моё расписание{% else %}Расписание{% endif %}</a>
         {% if is_administrator or is_director %}<a href="{% url 'billing:services' %}" class="{% if request.resolver_match.app_name == 'billing' %}active{% endif %}">Услуги и оплаты</a>{% endif %}
       </nav>
@@ -32,7 +31,7 @@
       <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout" type="submit">Выйти</button></form>
     </div>
   </header>
-  <main class="content">
+  <main class="content {% block content_class %}{% endblock %}">
     {% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}
     {% block content %}{% endblock %}
   </main>
@@ -40,6 +39,6 @@
 {% else %}
   {% block anonymous %}{% endblock %}
 {% endif %}
-<script src="{% static 'js/app.js' %}?v=20261025-yuna-5"></script>
+<script src="{% static 'js/app.js' %}?v=20261115-schedule-3"></script>
 </body>
 </html>

@@ -37,7 +37,7 @@
     </dl>
     {% for exam in visit.audiometry_exams.all %}
     <div class="audiometry-summary"><strong>Аудиометрия · {{ exam.exam_datetime|date:'d.m.Y H:i' }}</strong>{% if exam.equipment_model %}<small>Оборудование: {{ exam.equipment_model }}</small>{% endif %}{% if exam.comment %}<p>{{ exam.comment }}</p>{% endif %}
-      {% if exam.measurements.all %}<div class="table-wrap"><table><thead><tr><th>Ухо</th><th>Проводимость</th><th>Частота</th><th>Порог</th></tr></thead><tbody>{% for measurement in exam.measurements.all %}<tr><td>{{ measurement.get_ear_display }}</td><td>{{ measurement.get_conduction_type_display }}</td><td>{{ measurement.frequency_hz }} Гц</td><td>{% if measurement.no_response %}Нет ответа до {{ measurement.no_response_level_db_hl }} дБ{% else %}{{ measurement.threshold_db_hl }} дБ HL{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+      {% if exam.measurements.all %}<div class="table-wrap system-inline-table"><table class="system-table"><thead><tr><th>Ухо</th><th>Проводимость</th><th>Частота</th><th>Порог</th></tr></thead><tbody>{% for measurement in exam.measurements.all %}<tr><td>{{ measurement.get_ear_display }}</td><td>{{ measurement.get_conduction_type_display }}</td><td>{{ measurement.frequency_hz }} Гц</td><td>{% if measurement.no_response %}Нет ответа до {{ measurement.no_response_level_db_hl }} дБ{% else %}{{ measurement.threshold_db_hl }} дБ HL{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
     </div>
     {% empty %}<p class="muted">Аудиометрические обследования не проводились.</p>{% endfor %}
   </article>

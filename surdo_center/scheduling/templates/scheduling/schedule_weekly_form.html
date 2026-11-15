@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Рабочий график · Медицинский центр «ЮНА»{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'scheduling:schedule' %}">← К расписанию врачей</a>
+<div class="page-heading compact">
+  <div><p class="eyebrow">Регулярный график</p><h1>Настроить рабочие дни врача</h1><p>Выбранные дни и часы будут использоваться для формирования времени записи пациентов.</p></div>
+</div>
+<div class="schedule-form-shell">
+  <form method="post" class="panel schedule-form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="schedule-form-grid">
+      <div class="field"><label for="{{ form.doctor.id_for_label }}">{{ form.doctor.label }} <b>*</b></label>{{ form.doctor }}{% for error in form.doctor.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.valid_from.id_for_label }}">{{ form.valid_from.label }} <b>*</b></label>{{ form.valid_from }}{% for error in form.valid_from.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }} <b>*</b></label>{{ form.start_time }}{% for error in form.start_time.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.end_time.id_for_label }}">{{ form.end_time.label }} <b>*</b></label>{{ form.end_time }}{% for error in form.end_time.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.booking_step_minutes.id_for_label }}">{{ form.booking_step_minutes.label }} <b>*</b></label>{{ form.booking_step_minutes }}{% for error in form.booking_step_minutes.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.valid_to.id_for_label }}">{{ form.valid_to.label }}</label>{{ form.valid_to }}{% for error in form.valid_to.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      <fieldset class="weekday-field">
+        <legend>{{ form.weekdays.label }} <b>*</b></legend>
+        <div class="weekday-options">{{ form.weekdays }}</div>
+        {% for error in form.weekdays.errors %}<small class="error">{{ error }}</small>{% endfor %}
+      </fieldset>
+    </div>
+    <p class="form-hint">Если для выбранных дней уже действует пересекающийся график, он будет отключён и заменён новым.</p>
+    <div class="form-actions"><a class="btn btn-secondary" href="{% url 'scheduling:schedule' %}">Отменить</a><button class="btn btn-primary" type="submit">Сохранить рабочий график</button></div>
+  </form>
+</div>
+{% endblock %}

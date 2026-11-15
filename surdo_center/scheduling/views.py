@@ -1,8 +1,9 @@
 from datetime import date, time
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import IntegrityError, transaction
+from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -10,8 +11,8 @@ from django.utils import timezone
 from accounts.models import Doctor, User
 from accounts.permissions import role_required
 from billing.models import Service
-from .forms import AppointmentWizardForm, RescheduleForm
-from .models import Appointment, DoctorScheduleTemplate
+from .forms import AppointmentWizardForm, RescheduleForm, ScheduleExceptionForm, WeeklyScheduleForm
+from .models import Appointment, DoctorScheduleException, DoctorScheduleTemplate
 from .services import create_appointment, get_available_slots, move_appointment
 
 
@@ -48,6 +49,21 @@ def _slots_json(slots, *, duration_minutes):
     else:
         message = f"Свободных интервалов на выбранную дату нет. Продолжительность приёма — {duration_minutes} мин."
     return JsonResponse({"slots": serialized, "duration_minutes": duration_minutes, "message": message})
+
+
+def _schedule_missing_message(doctor, selected_date, duration_minutes):
+    exceptions = DoctorScheduleException.objects.filter(doctor=doctor, exception_date=selected_date)
+    if exceptions.filter(is_day_off=True).exists():
+        return f"У врача на выбранную дату отмечен выходной. Продолжительность приёма — {duration_minutes} мин."
+    has_template = DoctorScheduleTemplate.objects.filter(
+        doctor=doctor,
+        weekday=selected_date.weekday(),
+        valid_from__lte=selected_date,
+        is_active=True,
+    ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=selected_date)).exists()
+    if not has_template and not exceptions.filter(is_available=True).exists():
+        return "У врача нет рабочего графика на выбранный день. Выберите другую дату или попросите директора настроить расписание."
+    return None
 
 
 @role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR)
@@ -168,10 +184,11 @@ def available_slots(request):
     service = Service.objects.filter(pk=service_id, is_active=True).first()
     if not doctor or not service:
         return JsonResponse({"slots": [], "message": "Врач или услуга недоступны. Обновите страницу."}, status=404)
-    return _slots_json(
-        get_available_slots(doctor, selected_date, service),
-        duration_minutes=service.duration_minutes,
-    )
+    slots = get_available_slots(doctor, selected_date, service)
+    missing_message = _schedule_missing_message(doctor, selected_date, service.duration_minutes)
+    if not slots and missing_message:
+        return JsonResponse({"slots": [], "duration_minutes": service.duration_minutes, "message": missing_message})
+    return _slots_json(slots, duration_minutes=service.duration_minutes)
 
 
 @role_required(User.Role.ADMINISTRATOR)
@@ -196,8 +213,92 @@ def reschedule_available_slots(request, pk):
 
 @role_required(User.Role.ADMINISTRATOR, User.Role.DOCTOR, User.Role.DIRECTOR)
 def schedule_view(request):
-    doctors = Doctor.objects.filter(user__role=User.Role.DOCTOR, user__is_active=True).select_related("user").order_by("user__last_name")
+    can_manage = request.user.is_superuser or request.user.role == User.Role.DIRECTOR
+    if request.method == "POST":
+        if not can_manage:
+            raise PermissionDenied("Изменять график может только директор.")
+        action = request.POST.get("action")
+        if action == "disable_template":
+            template = get_object_or_404(DoctorScheduleTemplate, pk=request.POST.get("template_id"), is_active=True)
+            template.is_active = False
+            template.save(update_fields=("is_active",))
+            messages.success(request, "Строка рабочего графика отключена.")
+            return redirect("scheduling:schedule")
+        elif action == "delete_exception":
+            item = get_object_or_404(DoctorScheduleException, pk=request.POST.get("exception_id"))
+            item.delete()
+            messages.success(request, "Изменение графика удалено.")
+            return redirect("scheduling:schedule")
+
+    active_schedules = DoctorScheduleTemplate.objects.filter(is_active=True).order_by("weekday", "start_time")
+    upcoming_exceptions = DoctorScheduleException.objects.filter(
+        exception_date__gte=timezone.localdate(),
+    ).order_by("exception_date", "start_time")
+    doctors = Doctor.objects.filter(
+        user__role=User.Role.DOCTOR, user__is_active=True,
+    ).select_related("user").prefetch_related(
+        Prefetch("schedule_templates", queryset=active_schedules, to_attr="active_schedules"),
+        Prefetch("schedule_exceptions", queryset=upcoming_exceptions, to_attr="upcoming_exceptions"),
+    ).order_by("user__last_name", "user__first_name")
     if request.user.role == User.Role.DOCTOR:
         doctors = doctors.filter(pk=request.user.pk)
-    schedules = DoctorScheduleTemplate.objects.filter(doctor__in=doctors, is_active=True).select_related("doctor")
-    return render(request, "scheduling/schedule.html", {"doctors": doctors, "schedules": schedules, "today": timezone.localdate()})
+    return render(request, "scheduling/schedule.html", {
+        "doctors": doctors,
+        "today": timezone.localdate(),
+        "can_manage_schedule": can_manage,
+    })
+
+
+@role_required(User.Role.DIRECTOR)
+def weekly_schedule_manage(request):
+    form = WeeklyScheduleForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        with transaction.atomic():
+            for weekday in data["weekdays"]:
+                overlapping = DoctorScheduleTemplate.objects.select_for_update().filter(
+                    doctor=data["doctor"], weekday=weekday, is_active=True,
+                ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=data["valid_from"]))
+                if data["valid_to"]:
+                    overlapping = overlapping.filter(valid_from__lte=data["valid_to"])
+                overlapping.update(is_active=False)
+                template = DoctorScheduleTemplate(
+                    doctor=data["doctor"], weekday=weekday,
+                    start_time=data["start_time"], end_time=data["end_time"],
+                    booking_step_minutes=data["booking_step_minutes"],
+                    valid_from=data["valid_from"], valid_to=data["valid_to"], is_active=True,
+                )
+                template.full_clean()
+                template.save()
+        messages.success(request, "Рабочий график сохранён. Доступное время для записи обновлено.")
+        return redirect("scheduling:schedule")
+    return render(request, "scheduling/schedule_weekly_form.html", {"form": form})
+
+
+@role_required(User.Role.DIRECTOR)
+def schedule_exception_manage(request):
+    form = ScheduleExceptionForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        is_day_off = data["exception_type"] == ScheduleExceptionForm.TYPE_DAY_OFF
+        is_available = data["exception_type"] == ScheduleExceptionForm.TYPE_EXTRA
+        try:
+            with transaction.atomic():
+                if is_day_off:
+                    item, _ = DoctorScheduleException.objects.update_or_create(
+                        doctor=data["doctor"], exception_date=data["exception_date"], is_day_off=True,
+                        defaults={"start_time": None, "end_time": None, "is_available": False, "reason": data["reason"]},
+                    )
+                else:
+                    item, _ = DoctorScheduleException.objects.update_or_create(
+                        doctor=data["doctor"], exception_date=data["exception_date"],
+                        start_time=data["start_time"], end_time=data["end_time"], is_available=is_available,
+                        defaults={"is_day_off": False, "reason": data["reason"]},
+                    )
+                item.full_clean()
+        except (IntegrityError, ValidationError) as error:
+            form.add_error(None, _validation_message(error))
+        else:
+            messages.success(request, "Изменение графика сохранено и учтено в доступном времени.")
+            return redirect("scheduling:schedule")
+    return render(request, "scheduling/schedule_exception_form.html", {"form": form})

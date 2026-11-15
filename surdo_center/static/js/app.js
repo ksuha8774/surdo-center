@@ -132,6 +132,22 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshSlots();
   });
 
+  document.querySelectorAll("[data-exception-form]").forEach((form) => {
+    const typeField = form.querySelector("[name='exception_type']");
+    const timeFields = form.querySelectorAll(".exception-time-field");
+    const updateTimeFields = () => {
+      const isDayOff = typeField?.value === "day_off";
+      timeFields.forEach((wrapper) => {
+        wrapper.hidden = isDayOff;
+        wrapper.querySelectorAll("input").forEach((input) => {
+          input.disabled = isDayOff;
+        });
+      });
+    };
+    typeField?.addEventListener("change", updateTimeFields);
+    updateTimeFields();
+  });
+
   document.querySelectorAll("[data-validate]").forEach((form) => {
     form.addEventListener("submit", (event) => {
       if (event.submitter?.value === "search") return;
