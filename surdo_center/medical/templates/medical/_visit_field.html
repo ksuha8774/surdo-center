@@ -1,0 +1,5 @@
+<div class="visit-field {% if field.errors %}invalid{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if required %}<b aria-hidden="true">*</b><span class="sr-only"> — обязательное поле при завершении</span>{% endif %}</label>
+  {{ field }}
+  {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+</div>

@@ -72,6 +72,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+  if (requestedTab) {
+    document.querySelector(`[data-tab="${CSS.escape(requestedTab)}"]`)?.click();
+  }
+  const visitForm = document.getElementById("visit-form");
+  if (visitForm) {
+    let changed = false;
+    visitForm.addEventListener("input", () => { changed = true; });
+    visitForm.addEventListener("submit", (event) => {
+      // Confirmation dialogs may cancel the first submit; clear only when leaving.
+      if (!event.defaultPrevented) changed = false;
+    });
+    window.addEventListener("beforeunload", (event) => {
+      if (changed) { event.preventDefault(); event.returnValue = ""; }
+    });
+  }
+
   document.querySelectorAll("[data-slot-form]").forEach((form) => {
     const mode = form.dataset.slotMode;
     const endpoint = form.dataset.slotUrl;

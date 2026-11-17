@@ -199,8 +199,83 @@
     return result;
   }
 
+  function initMeasurementWorkspace(form) {
+    if (!form) return;
+    const series = [...form.querySelectorAll("[data-measurement-series]")];
+    const earButtons = [...form.querySelectorAll("[data-entry-ear]")];
+    const conductionButtons = [...form.querySelectorAll("[data-entry-conduction]")];
+    const maskedControl = form.querySelector("[data-entry-masked]");
+    if (!series.length || !earButtons.length || !conductionButtons.length || !maskedControl) return;
+
+    const selection = { ear: "right", conduction: "air", masked: false };
+
+    const updateNoResponse = (container) => {
+      const controls = [...container.querySelectorAll('input[name$="_no_response"]')];
+      let hasNoResponse = false;
+      controls.forEach((control) => {
+        const threshold = form.querySelector(`[name="${control.name.replace("_no_response", "_threshold")}"]`);
+        const level = form.querySelector(`[name="${control.name.replace("_no_response", "_level")}"]`);
+        if (control.checked) {
+          hasNoResponse = true;
+          if (threshold) {
+            threshold.value = "";
+            threshold.disabled = true;
+          }
+          if (level) level.disabled = false;
+        } else {
+          if (threshold) threshold.disabled = false;
+          if (level) level.disabled = true;
+        }
+      });
+      container.classList.toggle("has-no-response", hasNoResponse);
+    };
+
+    const renderSelection = () => {
+      series.forEach((container) => {
+        container.hidden = !(
+          container.dataset.ear === selection.ear
+          && container.dataset.conduction === selection.conduction
+          && (container.dataset.masked === "true") === selection.masked
+        );
+      });
+      earButtons.forEach((button) => button.classList.toggle("active", button.dataset.entryEar === selection.ear));
+      conductionButtons.forEach((button) => button.classList.toggle("active", button.dataset.entryConduction === selection.conduction));
+      maskedControl.checked = selection.masked;
+    };
+
+    earButtons.forEach((button) => button.addEventListener("click", () => {
+      selection.ear = button.dataset.entryEar;
+      renderSelection();
+    }));
+    conductionButtons.forEach((button) => button.addEventListener("click", () => {
+      selection.conduction = button.dataset.entryConduction;
+      renderSelection();
+    }));
+    maskedControl.addEventListener("change", () => {
+      selection.masked = maskedControl.checked;
+      renderSelection();
+    });
+    series.forEach((container) => {
+      updateNoResponse(container);
+      container.querySelectorAll('input[name$="_no_response"]').forEach((control) => {
+        control.addEventListener("change", () => updateNoResponse(container));
+      });
+    });
+    renderSelection();
+  }
+
   function init() {
     if (typeof document === "undefined") return;
+    const form = document.querySelector("[data-audiometry-form]");
+    if (form?.dataset.audiometryReadonly === "true") {
+      form.querySelectorAll("input, select, textarea").forEach((control) => {
+        control.disabled = true;
+      });
+    }
+    initMeasurementWorkspace(form);
+    document.querySelectorAll("[data-audiogram-print]").forEach((button) => {
+      button.addEventListener("click", () => window.print());
+    });
     document.querySelectorAll("[data-audiogram]").forEach((root) => {
       const canvas = root.querySelector("[data-audiogram-canvas]");
       const dataNode = document.getElementById(root.dataset.audiogramData || "audiogram-data");
@@ -217,7 +292,6 @@
         root.querySelectorAll("[data-audiogram-conduction]").forEach((item) => item.classList.toggle("active", item === button));
         render();
       }));
-      const form = document.querySelector("[data-audiometry-form]");
       if (form) {
         const formMeasurements = readMeasurementsFromForm(form);
         if (formMeasurements && formMeasurements.length) measurements = formMeasurements;
@@ -226,7 +300,6 @@
           render();
         });
       }
-      root.querySelector("[data-audiogram-print]")?.addEventListener("click", () => window.print());
       root.querySelector("[data-audiogram-download]")?.addEventListener("click", () => {
         const svg = canvas.querySelector("svg");
         if (!svg) return;

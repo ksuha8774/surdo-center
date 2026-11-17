@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -89,12 +90,18 @@ def exam_create_for_patient(request, patient_pk):
 
 
 @role_required(User.Role.DOCTOR)
+@transaction.atomic
 def exam_create_for_visit(request, visit_pk):
     visit = get_object_or_404(
         MedicalVisit.objects.select_related("appointment__patient", "appointment__doctor"), pk=visit_pk,
     )
     if not request.user.is_superuser and visit.appointment.doctor_id != request.user.id:
         raise PermissionDenied("Нельзя создать обследование для чужого приёма.")
+    # Serialize simultaneous submissions for the same visit without locking nullable joins.
+    MedicalVisit.objects.select_for_update().get(pk=visit.pk)
+    existing = visit.audiometry_exams.order_by("-created_at", "-pk").first()
+    if existing:
+        return redirect("audiometry:detail", pk=existing.pk)
     patient = visit.appointment.patient
     if patient.is_archived:
         raise PermissionDenied("Для архивного пациента нельзя создавать новое обследование.")

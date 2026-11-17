@@ -14,10 +14,12 @@ class Command(BaseCommand):
             ("Повторный приём врача-сурдолога", Decimal("1800.00"), 45),
             ("Консультация по результатам обследования", Decimal("1500.00"), 30),
         )
-        for service_name, price, duration_minutes in services:
+        form_types = ("primary", "repeat", "results")
+        for (service_name, price, duration_minutes), form_type in zip(services, form_types):
             Service.objects.get_or_create(
                 service_name=service_name,
-                defaults={"price": price, "duration_minutes": duration_minutes, "is_active": True},
+                defaults={"price": price, "duration_minutes": duration_minutes, "is_active": True,
+                          "medical_form_type": form_type, "medical_form_version": 1},
             )
 
         self.stdout.write(self.style.SUCCESS("Начальные справочники системы подготовлены."))

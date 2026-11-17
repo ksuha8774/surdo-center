@@ -325,6 +325,7 @@ class AudiometryViewTests(AudiometryFixtureMixin, TestCase):
 
     def test_exam_can_be_created_inside_own_visit_and_link_is_preserved(self):
         self.client.force_login(self.user)
+        self.exam.delete()
         response = self.client.post(
             reverse("audiometry:create_for_visit", args=(self.visit.pk,)), self.form_data(),
         )
@@ -332,6 +333,14 @@ class AudiometryViewTests(AudiometryFixtureMixin, TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(exam.visit, self.visit)
         self.assertEqual(exam.patient, self.patient)
+
+    def test_existing_visit_exam_is_reopened_without_duplicate_on_get_and_post(self):
+        self.client.force_login(self.user)
+        url = reverse("audiometry:create_for_visit", args=(self.visit.pk,))
+        target = reverse("audiometry:detail", args=(self.exam.pk,))
+        self.assertRedirects(self.client.get(url), target)
+        self.assertRedirects(self.client.post(url, self.form_data()), target)
+        self.assertEqual(self.visit.audiometry_exams.count(), 1)
 
     def test_completion_requires_doctor_conclusion_and_locks_post(self):
         self.client.force_login(self.user)

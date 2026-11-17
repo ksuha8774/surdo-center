@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Медицинский центр «ЮНА»{% endblock %}</title>
   <link rel="icon" type="image/png" href="{% static 'images/yuna-favicon.png' %}?v=20261023">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261117-audiometry-1">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261118-service-forms-1">
 </head>
 <body>
 {% if user.is_authenticated %}
@@ -52,7 +52,7 @@
 {% else %}
   {% block anonymous %}{% endblock %}
 {% endif %}
-<script src="{% static 'js/app.js' %}?v=20261117-audiometry-1"></script>
+<script src="{% static 'js/app.js' %}?v=20261118-service-forms-1"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

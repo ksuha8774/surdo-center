@@ -95,3 +95,170 @@ input,select,textarea{width:100%;min-height:42px;border:1px solid #b9cbd7;border
 @media(max-width:900px){.audiometry-meta-grid{grid-template-columns:1fr 1fr}.audiometry-conclusion-grid{grid-template-columns:1fr}.comparison-picker{grid-template-columns:1fr}.analysis-history>div{grid-template-columns:1fr 1fr}.audiometry-main-grid{display:block}.audiogram-panel{margin-top:18px}}
 @media(max-width:520px){.audiometry-meta-grid,.indicator-grid{grid-template-columns:1fr}.audiometry-form-actions{flex-direction:column-reverse}.audiometry-form-actions .btn{width:100%}.audiogram-filters>div{width:100%;overflow:auto}.audiogram-legend{display:grid}.analysis-history>div{grid-template-columns:1fr}.audiometry-entry-panel,.audiogram-panel{padding:12px}}
 @media print{body{background:#fff!important}.topbar,.back-link,.audiometry-results-panel,.audiometry-analysis-panel,.audiogram-filters,.audiogram-heading .actions,.audiometry-workspace>*:not(.audiometry-edit-fieldset),.audiometry-edit-fieldset>*:not(.audiometry-main-grid),.audiometry-main-grid>*:not(.print-audiogram){display:none!important}.content{width:100%;margin:0}.audiometry-heading{display:flex}.audiometry-main-grid{display:block}.print-audiogram{display:block!important;position:static;border:0;box-shadow:none}.audiogram-canvas{min-height:0}}
+
+/* Compact audiometry workstation */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.content.audiometry-content{width:min(1600px,calc(100% - 32px));max-width:none;margin:8px auto 28px}
+.audiometry-workspace{display:grid;gap:9px}
+.audiometry-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:20px;padding:2px 12px 0}
+.audiometry-hero .back-link{margin:0 0 7px;font-size:13px}
+.audiometry-hero-title{display:flex;align-items:flex-end;gap:22px;min-width:0}
+.audiometry-hero-title h1{margin:2px 0 0;color:#0b2d59;font-size:clamp(30px,2.7vw,42px);line-height:1;letter-spacing:-.035em}
+.audiometry-hero-title .eyebrow{font-size:11px}
+.audiometry-hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-bottom:3px;color:#526b7d;font-size:13px}
+.audiometry-hero-meta>span{display:inline-flex;align-items:center;min-height:26px;padding:0 14px;border-left:1px solid #aac0d0}
+.audiometry-hero-meta>span:first-child{border-left:0}
+.audiometry-hero-meta .badge{min-height:0;margin-left:8px;padding:5px 11px;border:0}
+.audiometry-top-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;padding-bottom:2px}
+.audiometry-top-actions .btn{min-height:40px;padding:8px 15px;font-size:13px}
+.audiometry-edit-fieldset{display:grid;gap:12px;margin:0;padding:0;border:0;min-width:0}
+.audiometry-edit-fieldset:disabled{opacity:1}
+.audiometry-edit-fieldset:disabled input,.audiometry-edit-fieldset:disabled select,.audiometry-edit-fieldset:disabled textarea{color:#385879;background:#f2f8fc;opacity:1}
+.audiometry-main-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start;min-width:0}
+.audiometry-main-grid>.panel,.audiometry-conclusion-panel{min-width:0;margin:0;border:1px solid #c6dbe9;border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-panel);backdrop-filter:blur(8px)}
+.audiometry-entry-panel,.audiogram-panel{padding:10px}
+.audiometry-section-title{min-height:32px;display:flex;align-items:center;margin:0 0 7px!important;padding:5px 10px;border-radius:9px;background:linear-gradient(90deg,#e5f2fb,#d9ebf8);color:#102d58;font-size:18px!important;font-weight:800}
+.audiometry-section-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}
+.audiometry-section-heading .audiometry-section-title{margin-right:0!important}
+.audiometry-section-heading .btn{margin:1px 1px 0 0}
+.audiometry-meta-details{margin:0 2px 10px;border:1px solid #d7e5ef;border-radius:10px;background:rgba(248,252,255,.9)}
+.audiometry-meta-details summary{display:grid;grid-template-columns:1.05fr 1.4fr 1fr 1.25fr auto;align-items:center;gap:9px;padding:8px 10px;list-style:none;cursor:pointer}
+.audiometry-meta-details summary::-webkit-details-marker{display:none}
+.audiometry-meta-details summary span{min-width:0;padding-right:9px;border-right:1px solid #dbe6ee;color:#385879;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.audiometry-meta-details summary b{display:block;margin-bottom:1px;color:#607a8c;font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.audiometry-meta-details summary em{color:var(--blue-700);font-size:11px;font-style:normal;font-weight:750}
+.audiometry-meta-editor{display:grid;grid-template-columns:1.1fr 1fr 1fr 1.25fr;gap:10px;padding:10px;border-top:1px solid #dbe6ee}
+.audiometry-meta-editor .field{display:grid;gap:4px}
+.audiometry-meta-editor label{color:#385879;font-size:11px;font-weight:750}
+.audiometry-meta-editor input,.audiometry-meta-editor select{height:36px;min-height:36px;padding:5px 8px;font-size:12px}
+.audiometry-entry-switches{display:grid;grid-template-columns:1fr 1.35fr auto;align-items:center;gap:8px;margin:0 2px 9px}
+.audiometry-switch{display:flex;min-width:0;padding:3px;border:1px solid #d0e0eb;border-radius:9px;background:#eef5f9}
+.audiometry-switch button{min-width:0;min-height:30px;flex:1;border:0;border-radius:7px;background:transparent;padding:5px 8px;color:#385879;font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap}
+.audiometry-switch button.active{background:linear-gradient(135deg,#087fd2,#0063c9);color:#fff;box-shadow:0 4px 10px rgba(0,101,201,.2)}
+.audiometry-masking-switch{min-height:36px;display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid #d0e0eb;border-radius:9px;background:#eef5f9;color:#385879;font-size:11px;font-weight:750;white-space:nowrap;cursor:pointer}
+.audiometry-masking-switch input{width:16px;height:16px;min-height:16px;padding:0}
+.audiometry-entry-help{margin:0 3px 8px;color:var(--muted);font-size:11px}
+.audiometry-series[hidden]{display:none!important}
+.audiometry-series-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 7px;color:#102d58;font-size:12px}
+.audiometry-series-caption label{display:flex;align-items:center;gap:7px;color:#526b7d;font-size:10px;font-weight:700}
+.audiometry-series-caption select{width:125px;height:31px;min-height:31px;padding:3px 7px;font-size:10px}
+.audiometry-table-wrap{max-height:none;overflow:auto;border:1px solid #c6dbe9;border-radius:9px;background:#fff}
+.audiometry-entry-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0}
+.audiometry-entry-table th,.audiometry-entry-table td{height:39px;padding:5px;border-right:1px solid #dbe6ee;border-bottom:1px solid #dbe6ee;text-align:center;vertical-align:middle}
+.audiometry-entry-table tr:last-child th,.audiometry-entry-table tr:last-child td{border-bottom:0}
+.audiometry-entry-table th:last-child,.audiometry-entry-table td:last-child{border-right:0}
+.audiometry-entry-table thead th{position:static;min-width:55px;background:#e5f2fb;color:#102d58;font-size:10px;letter-spacing:0;text-transform:uppercase;white-space:nowrap}
+.audiometry-entry-table thead th:first-child,.audiometry-entry-table tbody th{position:sticky;z-index:2;left:0;width:136px;min-width:136px;text-align:left}
+.audiometry-entry-table thead th:first-child{z-index:3}
+.audiometry-entry-table tbody th{background:#f7fbfe;color:#102d58;font-size:10px;line-height:1.2;text-transform:none;letter-spacing:0}
+.audiometry-entry-table td{width:58px;min-width:58px;background:#fff}
+.audiometry-entry-table input[type=number]{height:29px;min-height:29px;padding:3px 4px;border-radius:7px;text-align:center;font-size:11px}
+.compact-checkbox{display:grid;place-items:center;min-height:27px}
+.compact-checkbox input{width:16px;height:16px;min-height:16px;padding:0}
+.audiometry-entry-table .error{max-width:72px;font-size:8px;line-height:1.15}
+.presentation-row{display:none}
+.audiometry-series.has-no-response .presentation-row{display:table-row}
+.audiometry-comment-field{display:grid;gap:4px;margin:9px 2px 0}
+.audiometry-comment-field label,.audiometry-conclusion-grid label{color:#102d58;font-size:11px;font-weight:750}
+.audiometry-comment-field textarea{min-height:62px;height:62px;padding:8px 10px;font-size:12px}
+.audiogram-panel{position:static;top:auto}
+.btn-small{min-height:34px;padding:5px 10px;font-size:11px}
+.audiogram-filters{display:flex;align-items:center;flex-wrap:wrap;gap:7px 14px;margin:0 2px 8px}
+.audiogram-filters>div{display:flex;align-items:center;gap:3px;padding:3px;border-radius:8px;background:#edf4f8}
+.audiogram-filters span{padding:0 6px;color:#526b7d;font-size:9px;font-weight:800;text-transform:uppercase}
+.audiogram-filters button{min-height:27px;padding:4px 9px;border:0;border-radius:6px;background:transparent;color:#385879;font-size:10px;font-weight:750;cursor:pointer}
+.audiogram-filters button.active{background:#0873cf;color:#fff;box-shadow:0 3px 8px rgba(7,93,198,.18)}
+.audiogram-data-grid{display:grid;grid-template-columns:minmax(0,1fr) 238px;align-items:start;gap:9px}
+.audiogram-visual{min-width:0}
+.audiogram-canvas{min-height:0;border-radius:9px;background:#fff}
+.audiogram-svg{display:block;width:100%;height:auto;max-height:232px}
+.audiogram-axis-label{fill:#526b7d;font-size:11px}.audiogram-axis-title{fill:#183042;font-size:12px;font-weight:750}
+.audiogram-point:focus{outline:none}.audiogram-point:focus text{filter:drop-shadow(0 0 3px #ffd24b)}
+.indicator-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.indicator-grid article{min-width:0;min-height:46px;padding:6px 8px;border:1px solid #d4e4ef;border-radius:9px;background:#f5faff}
+.indicator-grid article.indicator-wide{grid-column:1/-1}
+.indicator-grid span,.indicator-grid strong{display:block}
+.indicator-grid span{color:#607a8c;font-size:9px;line-height:1.2}
+.indicator-grid strong{margin-top:3px;color:#102d58;font-size:11px;line-height:1.15;overflow-wrap:anywhere}
+.audiogram-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 11px;margin:7px 0 0;padding:7px;border-radius:8px;background:#f2f8fc;color:#526b7d;font-size:9px}
+.audiogram-legend .right-mark{color:#dc343f;font-weight:900}.audiogram-legend .left-mark{color:#1769d2;font-weight:900}
+.analysis-warnings{display:grid;gap:4px;margin-top:6px;padding:6px 8px;border:1px solid #ead28f;border-radius:9px;background:#fff9e7;color:#73510e;font-size:9px}
+.analysis-warnings p{margin:0}
+.compact-warnings{max-height:54px;overflow:auto}
+.audiometry-analysis-panel{margin-top:6px;padding-top:6px;border-top:1px solid #dbe6ee}
+.audiometry-analysis-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;padding:5px 8px;border-radius:9px;background:linear-gradient(90deg,#e5f2fb,#d9ebf8)}
+.audiometry-analysis-heading h2{margin:1px 0 0!important;color:#102d58;font-size:14px!important}
+.audiometry-analysis-heading .eyebrow{font-size:8px}
+.analysis-heading-actions{display:flex;align-items:center;gap:7px}
+.analysis-heading-actions .badge{font-size:9px}
+.analysis-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:7px}
+.analysis-meta>span:not(.badge){padding:4px 6px;border-radius:6px;background:#edf6fc;color:#526b7d;font-size:9px}
+.rule-hit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.rule-hit-list article{padding:9px;border:1px solid #cfe0eb;border-radius:9px;background:#f7fbfe;font-size:10px}
+.rule-hit-list h3,.rule-hit-list p{margin:0}.rule-hit-list h3{font-size:11px}.rule-hit-list p{margin-top:4px}
+.rule-hit-list details{margin-top:6px;color:#526b7d}.rule-hit-list article>strong{display:block;margin-top:6px;color:#176044}
+.analysis-text{margin-top:7px;padding:8px 9px;border-radius:8px;background:#f2f8fc;font-size:10px}
+.analysis-text h3,.analysis-text p{margin:0}.analysis-text h3{font-size:11px}.analysis-text ul{margin:4px 0 0;padding-left:17px}
+.compact-empty{min-height:44px;padding:5px;font-size:9px}
+.analysis-history{margin-top:8px;padding-top:7px;border-top:1px solid var(--line);font-size:10px}
+.analysis-history summary{font-weight:800;cursor:pointer}
+.analysis-history>div{display:grid;grid-template-columns:120px 1fr auto auto;gap:7px;padding:6px 0;border-bottom:1px solid var(--line);font-size:9px}
+.audiometry-conclusion-panel{padding:8px 10px 10px}
+.audiometry-conclusion-panel .audiometry-section-title{margin-bottom:8px!important}
+.audiometry-conclusion-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.audiometry-conclusion-grid .field{display:grid;gap:4px;min-width:0}
+.audiometry-conclusion-grid textarea{height:80px;min-height:80px;padding:7px 9px;font-size:12px}
+.comparison-picker{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:16px;margin-bottom:18px}
+.comparison-picker label{display:grid;gap:6px;color:#102d58;font-weight:750}
+.comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.comparison-grid .audiogram-panel{position:static}.audiometry-history-record small+small{margin-top:4px}
+
+@media(max-width:1320px){.audiometry-hero{grid-template-columns:1fr}.audiometry-top-actions{justify-content:flex-start}.audiometry-main-grid{grid-template-columns:1fr}.audiogram-data-grid{grid-template-columns:minmax(0,1fr) 280px}.comparison-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.audiometry-hero-title{align-items:flex-start;flex-direction:column;gap:9px}.audiometry-hero-meta>span:first-child{padding-left:0}.audiometry-top-actions{flex-wrap:wrap}.audiometry-meta-details summary{grid-template-columns:1fr 1fr}.audiometry-meta-details summary span:nth-last-child(2){border-right:0}.audiometry-meta-editor{grid-template-columns:1fr 1fr}.audiometry-entry-switches{grid-template-columns:1fr 1fr}.audiometry-masking-switch{grid-column:1/-1}.audiogram-data-grid{grid-template-columns:1fr}.indicator-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.audiometry-conclusion-grid{grid-template-columns:1fr}.analysis-history>div{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.content.audiometry-content{width:calc(100% - 20px);margin-top:14px}.audiometry-hero{padding:0}.audiometry-hero-title h1{font-size:30px}.audiometry-hero-meta{display:grid;grid-template-columns:1fr}.audiometry-hero-meta>span{padding:3px 0;border-left:0}.audiometry-top-actions{display:grid;grid-template-columns:1fr}.audiometry-top-actions .btn{width:100%}.audiometry-meta-details summary,.audiometry-meta-editor,.audiometry-entry-switches{grid-template-columns:1fr}.audiometry-meta-details summary span{padding-right:0;border-right:0}.audiometry-masking-switch{grid-column:auto}.audiometry-entry-panel,.audiogram-panel{padding:9px}.audiogram-filters>div{width:100%;overflow:auto}.indicator-grid{grid-template-columns:1fr 1fr}.audiogram-legend{display:grid}.audiometry-analysis-heading{align-items:flex-start;flex-direction:column}.analysis-heading-actions{width:100%;justify-content:space-between}.rule-hit-list{grid-template-columns:1fr}.analysis-history>div{grid-template-columns:1fr}.audiometry-conclusion-panel{padding:9px}.audiometry-conclusion-grid textarea{height:110px}}
+@media print{body{background:#fff!important}.topbar,.audiometry-hero .back-link,.audiometry-top-actions,.audiometry-entry-panel,.audiometry-analysis-panel,.audiometry-conclusion-panel,.audiogram-filters,.audiometry-section-heading .btn{display:none!important}.content.audiometry-content{width:100%;margin:0}.audiometry-hero{display:block}.audiometry-main-grid{display:block}.audiogram-panel{display:block!important;border:0!important;box-shadow:none!important}.audiogram-data-grid{grid-template-columns:1fr 260px}.audiogram-svg{max-height:none}}
+
+/* Compact doctor visit workspace */
+.visit-configuration-label{margin-bottom:12px;color:var(--muted);font-size:13px}
+.visit-columns.visit-single-column{grid-template-columns:minmax(0,1fr)}
+.visit-columns.visit-single-column>.visit-column{padding:0;border:0}
+.visit-module-summary{margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.visit-module-summary p{color:var(--ink);margin:8px 0}
+.visit-field input,.visit-field select{width:100%;min-height:var(--control-height);border:1px solid var(--line);border-radius:10px}
+.content.visit-page-content{width:min(1500px,90vw);margin-top:18px}
+.visit-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:28px;margin-bottom:18px;padding:0 24px}
+.visit-hero-copy{min-width:0}
+.visit-hero .back-link{margin:0 0 13px;color:#173c62;font-size:15px;font-weight:700}
+.visit-hero h1{margin:0;color:#0b2d59;font-size:42px;line-height:1.04;letter-spacing:-.03em}
+.visit-hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-top:14px;color:#173c62;font-size:16px}
+.visit-hero-meta>span:not(.badge){display:inline-flex;align-items:center;gap:10px;padding:0 22px;border-right:1px solid #a9c3d6;line-height:24px}
+.visit-hero-meta>span:first-child{padding-left:0}
+.visit-hero-meta>span:nth-last-child(2){border-right:0}
+.visit-hero-meta svg,.visit-hero-actions svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.visit-hero-meta .badge{margin-left:8px;padding:8px 18px;font-size:14px}
+.visit-hero-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding-bottom:11px}
+.visit-hero-actions .btn{min-height:49px;gap:11px;padding:10px 20px;border-radius:11px;font-size:16px}
+.visit-hero-actions .btn-primary{min-width:274px}
+.visit-workspace{display:grid;gap:0;margin:0;padding:21px 24px 17px;border:1px solid #c6dbe9;border-radius:25px;background:rgba(255,255,255,.96);box-shadow:0 12px 32px rgba(24,72,108,.15);backdrop-filter:blur(10px)}
+.visit-form-summary{margin-bottom:13px}
+.visit-columns{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.visit-column{min-width:0;padding:0 14px}
+.visit-column:first-child{padding-left:0;padding-right:24px;border-right:1px solid #c8ddea}
+.visit-column:last-child{padding-left:24px;padding-right:0}
+.visit-section-title{height:51px;display:flex;align-items:center;margin:0 0 17px;padding:0 17px;border-radius:13px;background:linear-gradient(90deg,#e5f2fb,#d9ebf8);color:#102d58;font-size:26px;font-weight:850;letter-spacing:-.02em}
+.visit-field{display:grid;gap:7px;margin-bottom:17px}
+.visit-field:last-child{margin-bottom:0}
+.visit-field label{color:#102d58;font-size:18px;font-weight:800}
+.visit-field label b{margin-left:4px;color:#d32935}
+.visit-field textarea{width:100%;height:92px;min-height:76px;max-height:260px;padding:12px 15px;border:1px solid #90b4d2;border-radius:12px;background:#fff;color:#102d58;font-size:16px;line-height:1.4;resize:vertical;overflow:auto}
+.visit-outcome-column .visit-field textarea{height:144px;min-height:112px}
+.visit-field textarea:focus{border-color:#0879cc;box-shadow:0 0 0 3px rgba(8,121,204,.13);outline:0}
+.visit-field textarea:disabled{color:#385879;background:#f3f8fb;opacity:1;resize:none}
+.visit-field.invalid textarea{border-color:#c63a47}
+.visit-field .error{margin-top:-2px;color:#b52231;font-size:12px}
+.visit-form-actions{display:flex;justify-content:flex-end;gap:17px;margin-top:20px;padding-top:20px;border-top:1px solid #c8ddea}
+.visit-form-actions .btn{min-width:265px;min-height:53px;border-radius:12px;font-size:17px}
+.visit-form-actions .btn-primary{min-width:250px}
+.visit-completed-note{margin-top:20px;padding:14px 18px;border-top:1px solid #c8ddea;border-radius:10px;background:#edf7f1;color:#176044;font-weight:750;text-align:center}
+
+@media(max-width:1200px){.visit-hero{grid-template-columns:1fr;align-items:start}.visit-hero-actions{justify-content:flex-start;padding-bottom:0}.visit-hero h1{font-size:38px}.visit-columns{grid-template-columns:1fr}.visit-column:first-child{padding:0;border-right:0}.visit-column:last-child{padding:20px 0 0}.visit-field textarea,.visit-outcome-column .visit-field textarea{height:110px}}
+@media(max-width:700px){.content.visit-page-content{width:calc(100% - 20px);margin-top:14px}.visit-hero{padding:0 4px}.visit-hero h1{font-size:31px}.visit-hero-meta{display:grid;gap:7px}.visit-hero-meta>span:not(.badge){padding:0;border-right:0}.visit-hero-meta .badge{width:max-content;margin-left:0}.visit-hero-actions{display:grid;grid-template-columns:1fr;width:100%}.visit-hero-actions .btn{width:100%;min-width:0}.visit-workspace{padding:13px;border-radius:18px}.visit-section-title{height:44px;font-size:21px}.visit-field label{font-size:16px}.visit-form-actions{flex-direction:column-reverse}.visit-form-actions .btn{width:100%;min-width:0}}

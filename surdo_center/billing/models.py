@@ -5,6 +5,10 @@ from django.db import models
 
 
 class Service(models.Model):
+    from medical.configurations import FORM_CHOICES
+
+    medical_form_type = models.CharField("Форма оформления", max_length=40, choices=FORM_CHOICES, default="basic")
+    medical_form_version = models.PositiveSmallIntegerField("Версия формы", default=1)
     service_name = models.CharField("Название", max_length=150, unique=True)
     price = models.DecimalField("Цена", max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
     duration_minutes = models.PositiveSmallIntegerField(
@@ -22,6 +26,11 @@ class Service(models.Model):
 
     def __str__(self):
         return self.service_name
+
+    def clean(self):
+        super().clean()
+        from medical.configurations import get_configuration
+        get_configuration(self.medical_form_type, self.medical_form_version)
 
 
 class ProvidedService(models.Model):

@@ -2,6 +2,70 @@
 {% block title %}Приём пациента · Медицинский центр «ЮНА»{% endblock %}
 {% block content_class %}system-page-content visit-page-content{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'scheduling:detail' appointment.pk %}">← К записи</a><div class="system-page-heading detail-page-heading"><div><p class="eyebrow">Врачебный приём</p><h1>{{ appointment.patient.full_name }}</h1><p>{{ appointment.patient.birth_date|date:'d.m.Y' }} · {{ appointment.planned_service.service_name }} · {{ appointment.start_time|time:'H:i' }}</p></div><div class="actions"><a class="btn btn-secondary" href="{% url 'audiometry:create_for_visit' visit.pk %}">Провести аудиометрию</a><span class="badge large status-in_progress">В процессе</span></div></div>
-<div class="visit-layout"><form method="post" class="panel form-panel system-form-panel" novalidate data-validate>{% csrf_token %}{% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}<h2 class="system-section-title">Данные текущего приёма</h2>{% for field in form %}<div class="field stacked {% if field.errors %}invalid{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.name == 'conclusion' %}<b>* при завершении</b>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="btn btn-secondary" name="save" value="1">Сохранить черновик</button><button class="btn btn-primary" name="complete" value="1">Завершить приём</button></div></form><aside><section class="panel system-side-panel"><h2 class="system-section-title">Пациент</h2><dl class="details single"><div><dt>Телефон</dt><dd>{{ appointment.patient.phone }}</dd></div><div><dt>Адрес</dt><dd>{{ appointment.patient.full_address }}</dd></div></dl></section><section class="panel system-side-panel"><h2 class="system-section-title">Предыдущие приёмы</h2>{% for previous in previous_visits %}<div class="history-note"><b>{{ previous.appointment.appointment_date|date:'d.m.Y' }}</b><p>{{ previous.conclusion|default:'Заключение не заполнено'|truncatechars:120 }}</p></div>{% empty %}<p class="muted">Предыдущих приёмов нет.</p>{% endfor %}</section></aside></div>
+<section class="visit-hero">
+  <div class="visit-hero-copy">
+    <a class="back-link" href="{% url 'scheduling:list' %}">←&nbsp;&nbsp;К списку приёмов</a>
+    <h1>{{ appointment.patient.full_name }}</h1>
+    <div class="visit-hero-meta" aria-label="Сведения о приёме">
+      <span>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"/></svg>
+        {{ appointment.patient.birth_date|date:'d.m.Y' }} ({{ patient_age_label }})
+      </span>
+      <span>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 14V8a4 4 0 0 1 4-4h1M20 14V8a4 4 0 0 0-4-4h-1M4 13a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v-7H4ZM20 13a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2v-7h2Z"/></svg>
+        {{ appointment.planned_service.service_name }}
+      </span>
+      <span>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        {{ appointment.appointment_date|date:'d.m.Y' }} · {{ appointment.start_time|time:'H:i' }}
+      </span>
+      <span class="badge large status-{{ appointment.status }}">{{ appointment.get_status_display }}</span>
+    </div>
+  </div>
+  <div class="visit-hero-actions">
+    <a class="btn btn-secondary" href="{% url 'patients:detail' appointment.patient.pk %}?tab=history">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>
+      История приёмов
+    </a>
+    {% if has_audiometry %}{% if is_completed %}
+      {% if existing_exam %}<a class="btn btn-primary" href="{% url 'audiometry:detail' existing_exam.pk %}">{% else %}<a class="btn btn-primary" href="{% url 'audiometry:create_for_visit' visit.pk %}">{% endif %}
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 14V8a4 4 0 0 1 4-4h1M20 14V8a4 4 0 0 0-4-4h-1M4 13a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v-7H4ZM20 13a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2v-7h2Z"/></svg>
+        {% if existing_exam %}Открыть аудиометрию{% else %}Провести аудиометрию{% endif %}
+      </a>
+    {% else %}
+      <button class="btn btn-primary" type="submit" name="audiometry" value="1" form="visit-form">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 14V8a4 4 0 0 1 4-4h1M20 14V8a4 4 0 0 0-4-4h-1M4 13a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v-7H4ZM20 13a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2v-7h2Z"/></svg>
+        {% if existing_exam %}Открыть аудиометрию{% else %}Провести аудиометрию{% endif %}
+      </button>
+    {% endif %}{% endif %}
+  </div>
+</section>
+
+<form method="post" id="visit-form" class="panel visit-workspace" novalidate data-validate>
+  {% csrf_token %}
+  <div class="visit-configuration-label">{{ visit_config.title }} · Версия {{ visit.form_version }}</div>
+  {% if visit_config.pending %}<div class="alert warning">Состав формы требует согласования для этой услуги. Используется минимальная базовая форма.</div>{% endif %}
+  {% if has_audiometry %}
+  <section class="visit-module-summary"><h2 class="visit-section-title">Аудиометрическое обследование</h2>
+    {% if existing_exam %}<p><span class="badge status-{% if existing_exam.status == 'completed' %}completed{% else %}planned{% endif %}">{{ existing_exam.get_status_display }}</span> · {{ existing_exam.exam_datetime|date:'d.m.Y H:i' }}</p><p>Измерения, аудиограмма, показатели и результаты СППР доступны в связанном обследовании.</p>
+    {% else %}<p>Обследование ещё не создано. Откройте модуль кнопкой «Провести аудиометрию». Измерения и анализ хранятся отдельно от текста приёма.</p>{% endif %}
+  </section>
+  {% endif %}
+  {% if has_exam_history %}<p><a class="btn btn-secondary" href="{% url 'patients:detail' appointment.patient.pk %}?tab=audiometry">Ранее проведённые обследования</a></p>{% endif %}
+  {% if form.non_field_errors %}<div class="form-summary visit-form-summary">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="visit-columns {% if form_sections|length == 1 %}visit-single-column{% endif %}">
+    {% for section in form_sections %}<section class="visit-column {% if forloop.last and form_sections|length > 1 %}visit-outcome-column{% endif %}">
+      <h2 class="visit-section-title">{{ section.title }}</h2>
+      {% for item in section.fields %}{% include 'medical/_visit_field.html' with field=item.bound required=item.required %}{% endfor %}
+    </section>{% endfor %}
+  </div>
+  {% if not is_completed %}
+  <div class="visit-form-actions">
+    <button class="btn btn-secondary" type="submit" name="save" value="1">Сохранить черновик</button>
+    <button class="btn btn-primary" type="submit" name="complete" value="1" data-confirm="Завершить приём? После завершения изменить данные будет нельзя.">Завершить приём</button>
+  </div>
+  {% else %}
+  <div class="visit-completed-note">Приём завершён. Данные доступны только для просмотра.</div>
+  {% endif %}
+</form>
 {% endblock %}
