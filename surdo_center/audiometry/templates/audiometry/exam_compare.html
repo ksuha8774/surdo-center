@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Сравнение аудиограмм · {{ patient.full_name }}{% endblock %}
+{% block content_class %}system-page-content audiometry-content{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'patients:detail' patient.pk %}">← К карточке пациента</a>
+<div class="system-page-heading detail-page-heading"><div><p class="eyebrow">Динамика обследований</p><h1>Сравнение аудиограмм</h1><p>{{ patient.full_name }} · {{ patient.birth_date|date:'d.m.Y' }}</p></div></div>
+<form method="get" class="panel comparison-picker">
+  <label>Первое исследование<select name="first">{% for exam in exams %}<option value="{{ exam.pk }}" {% if comparison.0.exam.pk == exam.pk %}selected{% endif %}>{{ exam.exam_datetime|date:'d.m.Y H:i' }} · {{ exam.performed_by.full_name }}</option>{% endfor %}</select></label>
+  <label>Второе исследование<select name="second">{% for exam in exams %}<option value="{{ exam.pk }}" {% if comparison.1.exam.pk == exam.pk %}selected{% endif %}>{{ exam.exam_datetime|date:'d.m.Y H:i' }} · {{ exam.performed_by.full_name }}</option>{% endfor %}</select></label>
+  <button class="btn btn-primary" type="submit">Сравнить</button>
+</form>
+{% if comparison|length == 2 %}<div class="comparison-grid">{% for item in comparison %}{% with exam_id=item.exam.pk|stringformat:'s' %}{% with data_id='compare-data-'|add:exam_id %}
+  <section class="panel audiogram-panel" data-audiogram data-audiogram-data="{{ data_id }}" data-exam-id="{{ item.exam.pk }}">
+    <div class="panel-heading"><div><p class="eyebrow">{{ item.exam.exam_datetime|date:'d.m.Y H:i' }}</p><h2>{{ item.exam.performed_by.full_name }}</h2></div><a class="btn btn-secondary btn-small" href="{% url 'audiometry:detail' item.exam.pk %}">Открыть</a></div>
+    <div class="audiogram-filters"><div><span>Ухо</span><button type="button" class="active" data-audiogram-ear="both">Оба</button><button type="button" data-audiogram-ear="right">Правое</button><button type="button" data-audiogram-ear="left">Левое</button></div><div><span>Проводимость</span><button type="button" class="active" data-audiogram-conduction="both">Все</button><button type="button" data-audiogram-conduction="air">Воздушная</button><button type="button" data-audiogram-conduction="bone">Костная</button></div></div>
+    <div class="audiogram-canvas" data-audiogram-canvas></div>
+  </section>
+  {{ item.measurements_json|json_script:data_id }}
+{% endwith %}{% endwith %}{% endfor %}</div>{% else %}<div class="panel empty-state"><b>Для сравнения нужны два завершённых исследования</b></div>{% endif %}
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'js/audiogram.js' %}?v=20261117-1"></script>{% endblock %}

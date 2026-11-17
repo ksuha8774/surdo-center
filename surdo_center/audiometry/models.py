@@ -78,6 +78,8 @@ class AudiometryExam(models.Model):
     def save(self, *args, **kwargs):
         if not self.patient_id and self.visit_id:
             self.patient_id = self.visit.appointment.patient_id
+        if self._state.adding and self.completed_at and self.status == self.Status.DRAFT:
+            self.status = self.Status.COMPLETED
         return super().save(*args, **kwargs)
 
     def __str__(self):

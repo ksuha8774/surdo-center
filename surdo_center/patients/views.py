@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import User
 from accounts.permissions import role_required
+from audiometry.models import AudiometryExam
 from medical.models import MedicalVisit
 
 from .forms import PatientArchiveForm, PatientForm
@@ -116,12 +117,19 @@ def patient_detail(request, pk):
         "appointment_date", "start_time"
     )
     medical_history = MedicalVisit.objects.none()
+    audiometry_exams = AudiometryExam.objects.none()
     if request.user.is_superuser or request.user.role == User.Role.DOCTOR:
         medical_history = (
             MedicalVisit.objects.filter(appointment__patient=patient)
             .select_related("appointment__doctor", "appointment__planned_service")
             .prefetch_related("audiometry_exams__measurements")
             .order_by("-appointment__appointment_date", "-appointment__start_time")
+        )
+        audiometry_exams = (
+            AudiometryExam.objects.filter(patient=patient)
+            .select_related("performed_by__user", "visit__appointment")
+            .prefetch_related("analyses")
+            .order_by("-exam_datetime", "-pk")
         )
     return render(
         request,
@@ -131,6 +139,7 @@ def patient_detail(request, pk):
             "past_appointments": past_appointments,
             "future_appointments": future_appointments,
             "medical_history": medical_history,
+            "audiometry_exams": audiometry_exams,
             "archive_form": PatientArchiveForm(),
             "archive_events": patient.archive_events.select_related("performed_by"),
             "patient_list_url": _patient_list_url(request),

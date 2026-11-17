@@ -218,10 +218,14 @@
         render();
       }));
       const form = document.querySelector("[data-audiometry-form]");
-      if (form) form.addEventListener("input", () => {
-        measurements = readMeasurementsFromForm(form) || measurements;
-        render();
-      });
+      if (form) {
+        const formMeasurements = readMeasurementsFromForm(form);
+        if (formMeasurements && formMeasurements.length) measurements = formMeasurements;
+        form.addEventListener("input", () => {
+          measurements = readMeasurementsFromForm(form) || measurements;
+          render();
+        });
+      }
       root.querySelector("[data-audiogram-print]")?.addEventListener("click", () => window.print());
       root.querySelector("[data-audiogram-download]")?.addEventListener("click", () => {
         const svg = canvas.querySelector("svg");

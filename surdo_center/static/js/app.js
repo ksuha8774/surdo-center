@@ -26,20 +26,23 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingConfirmSubmitter = null;
   };
 
-  document.querySelectorAll("[data-confirm]").forEach((form) => {
+  document.querySelectorAll("form").forEach((form) => {
     form.addEventListener("submit", (event) => {
+      const submitter = event.submitter || null;
+      const message = submitter?.dataset.confirm || form.dataset.confirm;
+      if (!message) return;
       if (form.dataset.confirmed === "true") {
         delete form.dataset.confirmed;
         return;
       }
       if (!confirmDialog?.showModal) {
-        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+        if (!window.confirm(message)) event.preventDefault();
         return;
       }
       event.preventDefault();
       pendingConfirmForm = form;
-      pendingConfirmSubmitter = event.submitter;
-      if (confirmMessage) confirmMessage.textContent = form.dataset.confirm;
+      pendingConfirmSubmitter = submitter;
+      if (confirmMessage) confirmMessage.textContent = message;
       confirmDialog.showModal();
     });
   });

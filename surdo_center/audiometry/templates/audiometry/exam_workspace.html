@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Аудиометрия · {{ exam.patient.full_name }} · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content audiometry-content{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'patients:detail' exam.patient.pk %}">← К карточке пациента</a>
+<div class="system-page-heading detail-page-heading audiometry-heading">
+  <div>
+    <p class="eyebrow">Тональная пороговая аудиометрия</p>
+    <h1>{{ exam.patient.full_name }}</h1>
+    <p>{{ exam.patient.birth_date|date:'d.m.Y' }} · Врач: {{ exam.performed_by.full_name }}{% if exam.visit_id %} · Приём №{{ exam.visit.appointment_id }}{% endif %}</p>
+  </div>
+  <span class="badge large status-{% if exam.status == 'completed' %}completed{% else %}planned{% endif %}">{{ exam.get_status_display }}</span>
+</div>
+
+<form method="post" class="audiometry-workspace" novalidate data-audiometry-form>
+  {% csrf_token %}
+  {% if metadata_form.non_field_errors or grid_form.non_field_errors %}<div class="form-summary">{{ metadata_form.non_field_errors }}{{ grid_form.non_field_errors }}</div>{% endif %}
+  <fieldset class="audiometry-edit-fieldset" {% if not can_edit %}disabled{% endif %}>
+    <section class="panel audiometry-meta-panel">
+      <h2 class="system-section-title">Параметры исследования</h2>
+      <div class="audiometry-meta-grid">
+        {% for field in metadata_form %}{% if field.name != 'comment' and field.name != 'doctor_conclusion' and field.name != 'doctor_recommendations' %}
+        <div class="field {% if field.errors %}invalid{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+        {% endif %}{% endfor %}
+        <div class="field wide {% if metadata_form.comment.errors %}invalid{% endif %}"><label for="{{ metadata_form.comment.id_for_label }}">{{ metadata_form.comment.label }}</label>{{ metadata_form.comment }}{% for error in metadata_form.comment.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      </div>
+    </section>
+
+    <div class="audiometry-main-grid">
+      <section class="panel audiometry-entry-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Исходные данные</p><h2>Пороги слышимости</h2></div><span class="muted">дБ HL</span></div>
+        <p class="audiometry-entry-help">Пустая ячейка не сохраняется. Для «Нет ответа» оставьте порог пустым и укажите уровень предъявления.</p>
+        <div class="audiometry-table-wrap">
+          <table class="audiometry-entry-table">
+            <thead><tr><th>Серия</th>{% for frequency in grid_rows.0.cells %}<th>{{ frequency.frequency }} Гц</th>{% endfor %}</tr></thead>
+            <tbody>
+            {% for row in grid_rows %}
+              <tr class="ear-{{ row.ear }} conduction-{{ row.conduction }}{% if row.masked %} masked-row{% endif %}">
+                <th>
+                  <strong>{{ row.ear_label }}</strong><span>{{ row.conduction_label }}{% if row.masked %}, с маскировкой{% endif %}</span>
+                  {{ row.reliability }}
+                </th>
+                {% for cell in row.cells %}<td>
+                  <div class="audiometry-cell">
+                    {{ cell.threshold }}
+                    <label class="no-response-control">{{ cell.no_response }}<span>Нет ответа</span></label>
+                    <div class="presentation-level"><span>Уровень</span>{{ cell.level }}</div>
+                    {% for error in cell.threshold.errors %}<small class="error">{{ error }}</small>{% endfor %}
+                    {% for error in cell.level.errors %}<small class="error">{{ error }}</small>{% endfor %}
+                  </div>
+                </td>{% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel audiogram-panel print-audiogram" data-audiogram data-audiogram-data="audiogram-data" data-exam-id="{{ exam.pk|default:'new' }}">
+        <div class="panel-heading audiogram-heading"><div><p class="eyebrow">Визуализация</p><h2>Аудиограмма</h2></div><div class="actions"><button class="btn btn-secondary btn-small" type="button" data-audiogram-download>SVG</button><button class="btn btn-secondary btn-small" type="button" data-audiogram-print>Печать</button></div></div>
+        <div class="audiogram-filters">
+          <div><span>Ухо</span><button type="button" class="active" data-audiogram-ear="both">Оба</button><button type="button" data-audiogram-ear="right">Правое</button><button type="button" data-audiogram-ear="left">Левое</button></div>
+          <div><span>Проводимость</span><button type="button" class="active" data-audiogram-conduction="both">Все</button><button type="button" data-audiogram-conduction="air">Воздушная</button><button type="button" data-audiogram-conduction="bone">Костная</button></div>
+        </div>
+        <div class="audiogram-canvas" data-audiogram-canvas></div>
+        <div class="audiogram-legend"><span class="right-mark">O / △</span> правое воздушное <span class="left-mark">X / □</span> левое воздушное <span class="right-mark">&lt; / [</span> правое костное <span class="left-mark">&gt; / ]</span> левое костное <span>↓ нет ответа</span></div>
+      </section>
+    </div>
+
+    <section class="panel audiometry-conclusion-panel">
+      <h2 class="system-section-title">Заключение врача</h2>
+      <p class="muted">Результаты СППР носят рекомендательный характер. Итоговый текст формирует и утверждает врач.</p>
+      <div class="audiometry-conclusion-grid">
+        <div class="field {% if metadata_form.doctor_conclusion.errors %}invalid{% endif %}"><label for="{{ metadata_form.doctor_conclusion.id_for_label }}">{{ metadata_form.doctor_conclusion.label }} <b>* при завершении</b></label>{{ metadata_form.doctor_conclusion }}{% for error in metadata_form.doctor_conclusion.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+        <div class="field {% if metadata_form.doctor_recommendations.errors %}invalid{% endif %}"><label for="{{ metadata_form.doctor_recommendations.id_for_label }}">{{ metadata_form.doctor_recommendations.label }}</label>{{ metadata_form.doctor_recommendations }}{% for error in metadata_form.doctor_recommendations.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>
+      </div>
+    </section>
+  </fieldset>
+  {% if can_edit %}<div class="audiometry-form-actions"><a class="btn btn-secondary" href="{% url 'patients:detail' exam.patient.pk %}">Закрыть</a><button class="btn btn-secondary" type="submit" name="action" value="draft">Сохранить черновик</button><button class="btn btn-primary" type="submit" name="action" value="complete" data-confirm="Завершить обследование? После завершения пороги нельзя будет изменить.">Завершить обследование</button></div>{% endif %}
+</form>
+
+{{ measurements_json|json_script:"audiogram-data" }}
+
+<section class="panel audiometry-results-panel">
+  <h2 class="system-section-title">Рассчитанные показатели</h2>
+  <div class="indicator-grid">
+    <article><span>PTA3, правое</span><strong>{% if indicators.pta3_right is not None %}{{ indicators.pta3_right }} дБ HL{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>PTA3, левое</span><strong>{% if indicators.pta3_left is not None %}{{ indicators.pta3_left }} дБ HL{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>PTA4, правое</span><strong>{% if indicators.pta4_right is not None %}{{ indicators.pta4_right }} дБ HL{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>PTA4, левое</span><strong>{% if indicators.pta4_left is not None %}{{ indicators.pta4_left }} дБ HL{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>Макс. ВКИ, правое</span><strong>{% if indicators.max_abg_right is not None %}{{ indicators.max_abg_right }} дБ{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>Макс. ВКИ, левое</span><strong>{% if indicators.max_abg_left is not None %}{{ indicators.max_abg_left }} дБ{% else %}Недостаточно данных{% endif %}</strong></article>
+    <article><span>Межушная разница PTA4</span><strong>{% if indicators.pta4_interaural_difference is not None %}{{ indicators.pta4_interaural_difference }} дБ{% else %}Недостаточно данных{% endif %}</strong></article>
+  </div>
+  {% if indicators.abg_by_frequency.right or indicators.abg_by_frequency.left %}<div class="abg-details"><h3>ВКИ по частотам</h3>{% for ear, values in indicators.abg_by_frequency.items %}<div><strong>{% if ear == 'right' %}Правое ухо{% else %}Левое ухо{% endif %}</strong>{% for frequency, item in values.items %}<span>{{ frequency }} Гц — {{ item.value }} дБ{% if item.masked %}, маскир.{% endif %}</span>{% empty %}<span class="muted">Нет сопоставимых пар</span>{% endfor %}</div>{% endfor %}</div>{% endif %}
+  {% if indicators.warnings %}<div class="analysis-warnings">{% for warning in indicators.warnings %}<p>{{ warning }}</p>{% endfor %}</div>{% endif %}
+</section>
+
+<section class="panel audiometry-analysis-panel" id="analysis">
+  <div class="panel-heading"><div><p class="eyebrow">Система поддержки принятия решений</p><h2>Результаты анализа</h2></div>{% if can_analyze %}<form method="post" action="{% url 'audiometry:analyze' exam.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">Выполнить анализ СППР</button></form>{% endif %}</div>
+  {% if latest_analysis %}
+    <div class="analysis-meta"><span>Выполнен {{ latest_analysis.created_at|date:'d.m.Y H:i' }}</span><span>Расчёт {{ latest_analysis.calculation_version }}</span><span>{% if latest_analysis.rule_set %}Правила {{ latest_analysis.rule_set.version }}{% else %}Без клинических правил{% endif %}</span>{% if latest_analysis.is_stale %}<span class="badge status-cancelled">Результат устарел</span>{% endif %}</div>
+    {% if latest_analysis.warnings %}<div class="analysis-warnings">{% for warning in latest_analysis.warnings %}<p>{{ warning }}</p>{% endfor %}</div>{% endif %}
+    {% if latest_analysis.rule_hits.all %}<div class="rule-hit-list">{% for hit in latest_analysis.rule_hits.all %}<article><h3>{{ hit.rule.title }}</h3><p>{{ hit.result_text }}</p><details><summary>Почему правило сработало</summary><p>{{ hit.explanation }}</p></details>{% if hit.recommendation_text %}<strong>Рекомендация: {{ hit.recommendation_text }}</strong>{% endif %}</article>{% endfor %}</div>{% else %}<div class="empty-state"><b>Клинические правила не сработали или не настроены</b><small>Количественные показатели рассчитаны выше. Итоговое решение принимает врач.</small></div>{% endif %}
+    {% if latest_analysis.preliminary_conclusion %}<div class="analysis-text"><h3>Предварительные выводы</h3><p>{{ latest_analysis.preliminary_conclusion|linebreaksbr }}</p></div>{% endif %}
+    {% if latest_analysis.recommendations %}<div class="analysis-text"><h3>Рекомендации СППР</h3><ul>{% for item in latest_analysis.recommendations %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if analyses|length > 1 %}<details class="analysis-history"><summary>История анализов ({{ analyses|length }})</summary>{% for analysis in analyses %}<div><strong>{{ analysis.created_at|date:'d.m.Y H:i' }}</strong><span>{% if analysis.rule_set %}{{ analysis.rule_set.name }} {{ analysis.rule_set.version }}{% else %}Без клинических правил{% endif %}</span><span>{{ analysis.rule_hits.count }} срабатываний</span>{% if analysis.is_stale %}<span>Устарел</span>{% endif %}</div>{% endfor %}</details>{% endif %}
+  {% else %}<div class="empty-state"><b>Анализ ещё не выполнялся</b><small>Сохраните измерения и запустите СППР. Результат не заменяет заключение врача.</small></div>{% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'js/audiogram.js' %}?v=20261117-1"></script>{% endblock %}

@@ -3,6 +3,7 @@ from datetime import time, timedelta
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Doctor, User
@@ -290,3 +291,109 @@ class DecisionSupportTests(AudiometryFixtureMixin, TestCase):
         self.assertIsNone(analysis.rule_set)
         self.assertEqual(analysis.rule_hits.count(), 0)
         self.assertIn("не настроен", " ".join(analysis.warnings).lower())
+
+
+class AudiometryViewTests(AudiometryFixtureMixin, TestCase):
+    def form_data(self, *, action="draft", conclusion=""):
+        return {
+            "exam_datetime": timezone.localtime().strftime("%Y-%m-%dT%H:%M"),
+            "exam_type": AudiometryExam.ExamType.PURE_TONE,
+            "reliability": AudiometryExam.Reliability.RELIABLE,
+            "equipment_model": "Аудиометр",
+            "comment": "",
+            "doctor_conclusion": conclusion,
+            "doctor_recommendations": "",
+            "right_air_plain_reliability": AudiometryMeasurement.Reliability.RELIABLE,
+            "right_air_plain_500_threshold": "20",
+            "right_air_plain_1000_threshold": "25",
+            "right_air_plain_2000_threshold": "30",
+            "right_air_plain_4000_threshold": "35",
+            "action": action,
+        }
+
+    def test_doctor_creates_draft_from_patient_and_reopens_workspace(self):
+        self.client.force_login(self.user)
+        url = reverse("audiometry:create_for_patient", args=(self.patient.pk,))
+        response = self.client.post(url, self.form_data())
+        exam = AudiometryExam.objects.exclude(pk=self.exam.pk).get()
+        self.assertRedirects(response, reverse("audiometry:detail", args=(exam.pk,)))
+        self.assertEqual(exam.measurements.count(), 4)
+        response = self.client.get(reverse("audiometry:detail", args=(exam.pk,)))
+        self.assertContains(response, "Аудиограмма")
+        self.assertContains(response, "PTA4, правое")
+        self.assertContains(response, "27,5 дБ HL")
+
+    def test_exam_can_be_created_inside_own_visit_and_link_is_preserved(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("audiometry:create_for_visit", args=(self.visit.pk,)), self.form_data(),
+        )
+        exam = AudiometryExam.objects.exclude(pk=self.exam.pk).get()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(exam.visit, self.visit)
+        self.assertEqual(exam.patient, self.patient)
+
+    def test_completion_requires_doctor_conclusion_and_locks_post(self):
+        self.client.force_login(self.user)
+        url = reverse("audiometry:detail", args=(self.exam.pk,))
+        response = self.client.post(url, self.form_data(action="complete"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Перед завершением оформите заключение врача")
+        response = self.client.post(url, self.form_data(action="complete", conclusion="Заключение"))
+        self.assertRedirects(response, url)
+        self.exam.refresh_from_db()
+        self.assertEqual(self.exam.status, AudiometryExam.Status.COMPLETED)
+        response = self.client.post(url, self.form_data())
+        self.assertEqual(response.status_code, 403)
+
+    def test_analyze_endpoint_keeps_history(self):
+        self.client.force_login(self.user)
+        url = reverse("audiometry:analyze", args=(self.exam.pk,))
+        self.client.post(url)
+        self.client.post(url)
+        self.assertEqual(DecisionAnalysis.objects.filter(exam=self.exam).count(), 2)
+
+    def test_other_doctor_can_view_but_cannot_edit_or_analyze(self):
+        other_user = User.objects.create_user(username="other-audio", password="pass12345", role=User.Role.DOCTOR)
+        Doctor.objects.create(user=other_user)
+        self.client.force_login(other_user)
+        detail_url = reverse("audiometry:detail", args=(self.exam.pk,))
+        self.assertEqual(self.client.get(detail_url).status_code, 200)
+        self.assertEqual(self.client.post(detail_url, self.form_data()).status_code, 403)
+        self.assertEqual(self.client.post(reverse("audiometry:analyze", args=(self.exam.pk,))).status_code, 403)
+
+    def test_non_medical_roles_cannot_open_audiometry(self):
+        admin = User.objects.create_user(username="audio-admin", password="pass12345", role=User.Role.ADMINISTRATOR)
+        self.client.force_login(admin)
+        self.assertEqual(self.client.get(reverse("audiometry:detail", args=(self.exam.pk,))).status_code, 403)
+        self.assertEqual(
+            self.client.get(reverse("audiometry:create_for_patient", args=(self.patient.pk,))).status_code,
+            403,
+        )
+
+    def test_patient_card_exposes_history_only_to_doctor(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("patients:detail", args=(self.patient.pk,)))
+        self.assertContains(response, "История аудиометрии")
+        admin = User.objects.create_user(username="history-admin", password="pass12345", role=User.Role.ADMINISTRATOR)
+        self.client.force_login(admin)
+        response = self.client.get(reverse("patients:detail", args=(self.patient.pk,)))
+        self.assertNotContains(response, "История аудиометрии")
+
+    def test_compare_page_requires_two_completed_exams(self):
+        self.client.force_login(self.user)
+        self.exam.status = AudiometryExam.Status.COMPLETED
+        self.exam.completed_at = timezone.now()
+        self.exam.doctor_conclusion = "Первое заключение"
+        self.exam.save()
+        second = AudiometryExam.objects.create(
+            patient=self.patient,
+            performed_by=self.doctor,
+            status=AudiometryExam.Status.COMPLETED,
+            completed_at=timezone.now(),
+            doctor_conclusion="Второе заключение",
+        )
+        response = self.client.get(reverse("audiometry:compare", args=(self.patient.pk,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Сравнение аудиограмм")
+        self.assertContains(response, f'data-exam-id="{second.pk}"')
