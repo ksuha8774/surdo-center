@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}Перенос записи · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content form-page-content{% endblock %}
 {% block content %}
-<div class="form-shell">
+<div class="form-shell system-form-shell narrow-form-shell">
   <a class="back-link" href="{% url 'scheduling:detail' appointment.pk %}">← К записи</a>
-  <div class="page-heading compact"><div><p class="eyebrow">Перенос записи</p><h1>{{ appointment.patient.full_name }}</h1><p>Сейчас: {{ appointment.appointment_date|date:'d.m.Y' }} в {{ appointment.start_time|time:'H:i' }}, {{ appointment.doctor.full_name }}</p><p>{{ appointment.planned_service.service_name }} · {{ appointment.duration_minutes }} мин.</p></div></div>
-  <form method="post" class="panel" novalidate data-validate data-slot-form data-slot-mode="reschedule" data-slot-url="{% url 'scheduling:reschedule_available_slots' appointment.pk %}">
+  <div class="system-page-heading compact form-page-heading"><div><p class="eyebrow">Перенос записи</p><h1>{{ appointment.patient.full_name }}</h1><p>Сейчас: {{ appointment.appointment_date|date:'d.m.Y' }} в {{ appointment.start_time|time:'H:i' }}, {{ appointment.doctor.full_name }}</p><p>{{ appointment.planned_service.service_name }} · {{ appointment.duration_minutes }} мин.</p></div></div>
+  <form method="post" class="panel system-form-panel" novalidate data-validate data-slot-form data-slot-mode="reschedule" data-slot-url="{% url 'scheduling:reschedule_available_slots' appointment.pk %}">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
     <div class="field {% if form.appointment_date.errors %}invalid{% endif %}"><label for="{{ form.appointment_date.id_for_label }}">Новая дата <b>*</b></label>{{ form.appointment_date }}{% for error in form.appointment_date.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>

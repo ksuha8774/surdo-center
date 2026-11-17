@@ -240,6 +240,32 @@ class ScheduleManagementTests(TestCase):
             service_name="Короткая консультация", price=1000, duration_minutes=30,
         )
 
+    def test_schedule_page_renders_compact_sections_with_real_schedule_data(self):
+        DoctorScheduleTemplate.objects.create(
+            doctor=self.doctor, weekday=2, start_time=time(10), end_time=time(16),
+            booking_step_minutes=15, valid_from=timezone.localdate(),
+        )
+        exception_date = timezone.localdate() + timedelta(days=7)
+        DoctorScheduleException.objects.create(
+            doctor=self.doctor, exception_date=exception_date, is_day_off=True, reason="Обучение",
+        )
+        self.client.force_login(self.director)
+
+        response = self.client.get(reverse("scheduling:schedule"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Регулярное расписание")
+        self.assertContains(response, "Предстоящие изменения")
+        self.assertContains(response, "Среда")
+        self.assertContains(response, "10:00–16:00")
+        self.assertContains(response, "Шаг, мин.")
+        self.assertContains(response, '<span class="schedule-step">15</span>', html=True)
+        self.assertContains(response, exception_date.strftime("%d.%m.%Y"))
+        self.assertContains(response, "Выходной")
+        self.assertContains(response, "Обучение")
+        self.assertNotContains(response, "Рабочий график")
+        self.assertNotContains(response, "График определяет дни и время")
+
     def test_director_can_create_schedule_for_multiple_weekdays(self):
         self.client.force_login(self.director)
         response = self.client.post(reverse("scheduling:schedule_weekly"), {

@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Изменение графика · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content form-page-content{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'scheduling:schedule' %}">← К расписанию врачей</a>
-<div class="page-heading compact">
+<div class="system-page-heading compact form-page-heading">
   <div><p class="eyebrow">Изменение на дату</p><h1>Выходной, перерыв или дополнительное время</h1><p>Изменение действует только для выбранного врача и конкретной даты.</p></div>
 </div>
 <div class="schedule-form-shell narrow">
-  <form method="post" class="panel schedule-form" novalidate data-exception-form>
+  <form method="post" class="panel schedule-form system-form-panel" novalidate data-exception-form>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
     <div class="schedule-form-grid compact-grid">

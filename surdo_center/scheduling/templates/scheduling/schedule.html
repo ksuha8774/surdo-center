@@ -1,12 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Расписание · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content schedule-content{% endblock %}
 {% block content %}
-<div class="page-heading">
-  <div>
-    <p class="eyebrow">Рабочий график</p>
-    <h1>{% if is_doctor and not user.is_superuser %}Моё расписание{% else %}Расписание врачей{% endif %}</h1>
-    <p>График определяет дни и время, которые появляются при создании записи пациента.</p>
-  </div>
+<div class="system-page-heading schedule-page-heading">
+  <h1>{% if is_doctor and not user.is_superuser %}Моё расписание{% else %}Расписание врачей{% endif %}</h1>
 </div>
 
 {% if can_manage_schedule %}
@@ -24,54 +21,57 @@
 
 <section class="schedule-grid">
   {% for doctor in doctors %}
-  <article class="panel doctor-card">
+  <article class="schedule-doctor-card">
     <div class="doctor-card-head">
-      <span class="avatar large">{{ doctor.first_name|first }}{{ doctor.last_name|first }}</span>
-      <div><h2>{{ doctor.full_name }}</h2><p>{{ doctor.specialization|default:'Врач-сурдолог' }}</p></div>
+      <span class="schedule-doctor-avatar">{{ doctor.first_name|first }}{{ doctor.last_name|first }}</span>
+      <div class="schedule-doctor-identity"><h2>{{ doctor.full_name }}</h2><p>{{ doctor.specialization|default:'Врач' }}</p></div>
     </div>
 
     <div class="schedule-card-section">
-      <h3>Регулярный график</h3>
+      <h3 class="schedule-section-title">Регулярное расписание</h3>
       {% if doctor.active_schedules %}
-      <div class="schedule-lines">
-        {% for item in doctor.active_schedules %}
-        <div class="schedule-line">
-          <span>{{ item.get_weekday_display }}</span>
-          <b>{{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}</b>
-          <small>шаг {{ item.booking_step_minutes }} мин.</small>
-          {% if can_manage_schedule %}
-          <form method="post" class="inline-form" data-confirm="Отключить эту строку графика?">
-            {% csrf_token %}<input type="hidden" name="template_id" value="{{ item.pk }}">
-            <button class="text-danger" type="submit" name="action" value="disable_template">Отключить</button>
-          </form>
-          {% endif %}
-        </div>
-        {% endfor %}
+      <div class="schedule-card-table-wrap">
+        <table class="schedule-card-table">
+          <thead><tr><th>День недели</th><th>Рабочее время</th><th>Шаг, мин.</th>{% if can_manage_schedule %}<th>Действие</th>{% endif %}</tr></thead>
+          <tbody>{% for item in doctor.active_schedules %}<tr>
+            <td>{{ item.get_weekday_display }}</td>
+            <td><b>{{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}</b></td>
+            <td><span class="schedule-step">{{ item.booking_step_minutes }}</span></td>
+            {% if can_manage_schedule %}<td>
+              <form method="post" class="inline-form" data-confirm="Отключить эту строку графика?">
+                {% csrf_token %}<input type="hidden" name="template_id" value="{{ item.pk }}">
+                <button class="text-danger" type="submit" name="action" value="disable_template">Отключить</button>
+              </form>
+            </td>{% endif %}
+          </tr>{% endfor %}</tbody>
+        </table>
       </div>
-      {% else %}<p class="empty-inline">Регулярный график не задан.</p>{% endif %}
+      {% else %}<p class="schedule-empty-message">Регулярное расписание не задано.</p>{% endif %}
     </div>
 
     <div class="schedule-card-section">
-      <h3>Предстоящие изменения</h3>
+      <h3 class="schedule-section-title">Предстоящие изменения</h3>
       {% if doctor.upcoming_exceptions %}
-      <div class="exception-list">
-        {% for item in doctor.upcoming_exceptions %}
-        <div class="exception-row">
-          <div>
-            <strong>{{ item.exception_date|date:'d.m.Y' }}</strong>
-            <span>{% if item.is_day_off %}Выходной{% elif item.is_available %}Дополнительное время{% else %}Закрытый интервал{% endif %}{% if not item.is_day_off %}: {{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}{% endif %}</span>
-            {% if item.reason %}<small>{{ item.reason }}</small>{% endif %}
-          </div>
-          {% if can_manage_schedule %}
-          <form method="post" class="inline-form" data-confirm="Удалить это изменение графика?">
-            {% csrf_token %}<input type="hidden" name="exception_id" value="{{ item.pk }}">
-            <button class="text-danger" type="submit" name="action" value="delete_exception">Удалить</button>
-          </form>
-          {% endif %}
-        </div>
-        {% endfor %}
+      <div class="schedule-card-table-wrap">
+        <table class="schedule-card-table schedule-exceptions-table">
+          <thead><tr><th>Дата</th><th>Изменение</th><th>Время</th>{% if can_manage_schedule %}<th>Действие</th>{% endif %}</tr></thead>
+          <tbody>{% for item in doctor.upcoming_exceptions %}<tr>
+            <td><b>{{ item.exception_date|date:'d.m.Y' }}</b></td>
+            <td>
+              <span class="schedule-change-type {% if item.is_day_off %}day-off{% elif item.is_available %}extra-time{% else %}closed-time{% endif %}">{% if item.is_day_off %}Выходной{% elif item.is_available %}Дополнительное время{% else %}Закрытый интервал{% endif %}</span>
+              {% if item.reason %}<small class="schedule-change-reason">{{ item.reason }}</small>{% endif %}
+            </td>
+            <td>{% if item.is_day_off %}<span class="schedule-step">Весь день</span>{% else %}<b>{{ item.start_time|time:'H:i' }}–{{ item.end_time|time:'H:i' }}</b>{% endif %}</td>
+            {% if can_manage_schedule %}<td>
+              <form method="post" class="inline-form" data-confirm="Удалить это изменение графика?">
+                {% csrf_token %}<input type="hidden" name="exception_id" value="{{ item.pk }}">
+                <button class="text-danger" type="submit" name="action" value="delete_exception">Удалить</button>
+              </form>
+            </td>{% endif %}
+          </tr>{% endfor %}</tbody>
+        </table>
       </div>
-      {% else %}<p class="empty-inline">Предстоящих изменений нет.</p>{% endif %}
+      {% else %}<p class="schedule-empty-message">Предстоящих изменений нет.</p>{% endif %}
     </div>
   </article>
   {% empty %}<div class="panel empty-state"><b>Активных врачей нет</b></div>{% endfor %}

@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Рабочий график · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content form-page-content{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'scheduling:schedule' %}">← К расписанию врачей</a>
-<div class="page-heading compact">
+<div class="system-page-heading compact form-page-heading">
   <div><p class="eyebrow">Регулярный график</p><h1>Настроить рабочие дни врача</h1><p>Выбранные дни и часы будут использоваться для формирования времени записи пациентов.</p></div>
 </div>
 <div class="schedule-form-shell">
-  <form method="post" class="panel schedule-form" novalidate>
+  <form method="post" class="panel schedule-form system-form-panel" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-summary">{{ form.non_field_errors }}</div>{% endif %}
     <div class="schedule-form-grid">

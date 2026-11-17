@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Медицинский центр «ЮНА»{% endblock %}</title>
   <link rel="icon" type="image/png" href="{% static 'images/yuna-favicon.png' %}?v=20261023">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261115-tables-1">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261117-design-system-2">
 </head>
 <body>
 {% if user.is_authenticated %}
@@ -35,10 +35,23 @@
     {% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}
     {% block content %}{% endblock %}
   </main>
+  <dialog class="confirm-dialog" data-confirm-dialog aria-labelledby="confirm-dialog-title">
+    <form method="dialog" class="confirm-dialog-card">
+      <div class="confirm-dialog-heading">
+        <h2 id="confirm-dialog-title">Подтвердите действие</h2>
+        <button type="button" class="confirm-dialog-close" data-confirm-cancel aria-label="Закрыть">×</button>
+      </div>
+      <p data-confirm-message></p>
+      <div class="confirm-dialog-actions">
+        <button class="btn btn-secondary" type="button" data-confirm-cancel>Отменить</button>
+        <button class="btn btn-primary" type="button" data-confirm-accept>Подтвердить</button>
+      </div>
+    </form>
+  </dialog>
 </div>
 {% else %}
   {% block anonymous %}{% endblock %}
 {% endif %}
-<script src="{% static 'js/app.js' %}?v=20261115-schedule-3"></script>
+<script src="{% static 'js/app.js' %}?v=20261117-design-system-1"></script>
 </body>
 </html>

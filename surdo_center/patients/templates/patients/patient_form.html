@@ -3,15 +3,16 @@
 {% load static %}
 
 {% block title %}{{ title }} · Медицинский центр «ЮНА»{% endblock %}
+{% block content_class %}system-page-content form-page-content{% endblock %}
 
 {% block content %}
-<div class="form-shell">
+<div class="form-shell system-form-shell">
 
     <a class="back-link" href="{{ cancel_url }}">
         ← Назад
     </a>
 
-    <div class="page-heading compact">
+    <div class="system-page-heading compact form-page-heading">
         <div>
             <p class="eyebrow">Карточка пациента</p>
             <h1>{{ title }}</h1>
@@ -20,7 +21,7 @@
     </div>
 
     <form method="post"
-          class="panel form-panel"
+          class="panel form-panel system-form-panel"
           novalidate
           data-validate
           data-duplicate-url="{% url 'patients:duplicates' %}"
@@ -83,7 +84,7 @@
         <!-- Предупреждение о возможных дубликатах -->
         
         <div id="duplicate-warning"
-            class="panel"
+            class="panel duplicate-warning-panel"
             aria-live="polite"
             {% if not form.possible_duplicates %}hidden{% endif %}>
 

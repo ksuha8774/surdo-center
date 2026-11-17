@@ -1,16 +1,18 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block content_class %}system-page-content dashboard-content{% endblock %}
 {% block content %}
 {% if is_administrator %}
 <div class="admin-dashboard">
   <header class="admin-welcome">
-    <h1>Добрый день,<br>{{ user.first_name|default:user.username }}!</h1>
+    <h1>Главная</h1>
   </header>
 
   <section class="quick-actions admin-quick-actions" aria-label="Быстрые действия">
-    <a href="{% url 'scheduling:create' %}"><b>Новая запись</b></a>
-    <a class="quick-action-accent" href="{% url 'patients:create' %}"><b>Добавить пациента</b></a>
-    <a href="{% url 'scheduling:schedule' %}"><b>Открыть расписание</b></a>
-    <a href="{% url 'patients:list' %}"><b>Список пациентов</b></a>
+    <a href="{% url 'scheduling:create' %}"><span class="admin-quick-icon" aria-hidden="true"><img src="{% static 'images/dashboard-new-appointment.png' %}" alt=""></span><b>Новая запись</b></a>
+    <a class="quick-action-accent" href="{% url 'patients:create' %}"><span class="admin-quick-icon" aria-hidden="true"><img src="{% static 'images/dashboard-add-patient.png' %}" alt=""></span><b>Добавить пациента</b></a>
+    <a href="{% url 'scheduling:schedule' %}"><span class="admin-quick-icon" aria-hidden="true"><img src="{% static 'images/dashboard-open-schedule.png' %}" alt=""></span><b>Открыть расписание</b></a>
+    <a href="{% url 'patients:list' %}"><span class="admin-quick-icon" aria-hidden="true"><img src="{% static 'images/dashboard-patient-list.png' %}" alt=""></span><b>Список пациентов</b></a>
   </section>
 
   <div class="admin-dashboard-grid">
@@ -51,11 +53,9 @@
   </div>
 </div>
 {% else %}
-<div class="page-heading">
+<div class="system-page-heading dashboard-role-heading">
   <div>
-    <p class="eyebrow">{% if is_doctor %}Рабочее место врача{% else %}Панель директора{% endif %}</p>
-    <h1>{% if is_doctor %}Приёмы на сегодня{% else %}Работа центра сегодня{% endif %}</h1>
-    <p>{% if is_doctor %}Сразу видно, кто сейчас и кто следующий.{% else %}Только основные показатели без перегруженной аналитики.{% endif %}</p>
+    <h1>Главная</h1>
   </div>
 </div>
 

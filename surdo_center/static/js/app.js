@@ -14,10 +14,50 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "Escape") closeNavigation();
   });
 
+  const confirmDialog = document.querySelector("[data-confirm-dialog]");
+  const confirmMessage = confirmDialog?.querySelector("[data-confirm-message]");
+  const confirmAccept = confirmDialog?.querySelector("[data-confirm-accept]");
+  let pendingConfirmForm = null;
+  let pendingConfirmSubmitter = null;
+
+  const closeConfirmDialog = () => {
+    confirmDialog?.close();
+    pendingConfirmForm = null;
+    pendingConfirmSubmitter = null;
+  };
+
   document.querySelectorAll("[data-confirm]").forEach((form) => {
     form.addEventListener("submit", (event) => {
-      if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+      if (form.dataset.confirmed === "true") {
+        delete form.dataset.confirmed;
+        return;
+      }
+      if (!confirmDialog?.showModal) {
+        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+        return;
+      }
+      event.preventDefault();
+      pendingConfirmForm = form;
+      pendingConfirmSubmitter = event.submitter;
+      if (confirmMessage) confirmMessage.textContent = form.dataset.confirm;
+      confirmDialog.showModal();
     });
+  });
+
+  confirmDialog?.querySelectorAll("[data-confirm-cancel]").forEach((button) => {
+    button.addEventListener("click", closeConfirmDialog);
+  });
+  confirmDialog?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeConfirmDialog();
+  });
+  confirmAccept?.addEventListener("click", () => {
+    const form = pendingConfirmForm;
+    const submitter = pendingConfirmSubmitter;
+    closeConfirmDialog();
+    if (!form) return;
+    form.dataset.confirmed = "true";
+    form.requestSubmit(submitter || undefined);
   });
 
   document.querySelectorAll("[data-tab]").forEach((button) => {
