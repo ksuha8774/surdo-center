@@ -227,6 +227,12 @@ class DecisionRule(models.Model):
     def __str__(self):
         return f"{self.rule_set.version}: {self.title}"
 
+    def clean(self):
+        super().clean()
+        from .decision_support import validate_condition
+
+        validate_condition(self.condition)
+
 
 class DecisionAnalysis(models.Model):
     exam = models.ForeignKey(AudiometryExam, on_delete=models.PROTECT, related_name="analyses")

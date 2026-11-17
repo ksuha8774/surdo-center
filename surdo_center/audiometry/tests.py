@@ -12,8 +12,15 @@ from patients.models import Patient
 from scheduling.models import Appointment
 
 from .calculations import CALCULATION_VERSION, calculate_exam, calculate_indicators
+from .decision_support import evaluate_condition, run_decision_analysis, validate_condition
 from .forms import AudiometryExamForm, AudiometryMeasurementGridForm
-from .models import AudiometryExam, AudiometryMeasurement
+from .models import (
+    AudiometryExam,
+    AudiometryMeasurement,
+    DecisionAnalysis,
+    DecisionRule,
+    DecisionRuleSet,
+)
 from .services import can_edit_exam, can_view_exam, save_exam
 
 
@@ -200,3 +207,86 @@ class AudiometryCalculationTests(AudiometryFixtureMixin, TestCase):
         calculation, _ = calculate_exam(self.exam)
         self.assertEqual(calculation.pta4_right, 35)
         self.assertEqual(calculation.calculation_version, CALCULATION_VERSION)
+
+
+class DecisionSupportTests(AudiometryFixtureMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        for frequency, value in zip((500, 1000, 2000, 4000), (20, 30, 40, 50)):
+            AudiometryMeasurement.objects.create(
+                exam=self.exam,
+                ear=AudiometryMeasurement.Ear.RIGHT,
+                conduction_type=AudiometryMeasurement.ConductionType.AIR,
+                frequency_hz=frequency,
+                threshold_db_hl=value,
+            )
+        self.rule_set = DecisionRuleSet.objects.create(
+            code="audiometry-test",
+            name="Тестовый набор аудиометрии",
+            version="test-1",
+            is_active=True,
+            is_test=True,
+        )
+
+    def create_rule(self, *, code="test-rule", condition=None):
+        return DecisionRule.objects.create(
+            rule_set=self.rule_set,
+            code=code,
+            title="Тестовое правило",
+            condition=condition or {"metric": "pta4_right", "operator": "gte", "value": 35},
+            result_text="Тестовый предварительный вывод",
+            recommendation_text="Тестовая рекомендация",
+        )
+
+    def test_logical_conditions_support_all_any_and_preserve_evidence(self):
+        condition = {
+            "all": [
+                {"metric": "pta4_right", "operator": "gte", "value": 35},
+                {"any": [
+                    {"metric": "pta4_left", "operator": "missing"},
+                    {"metric": "pta4_left", "operator": "gt", "value": 10},
+                ]},
+            ]
+        }
+        validate_condition(condition)
+        result = evaluate_condition(condition, {"pta4_right": 35.0, "pta4_left": None})
+        self.assertTrue(result.matched)
+        self.assertEqual({item["metric"] for item in result.evidence}, {"pta4_right", "pta4_left"})
+
+    def test_analysis_saves_snapshot_rule_version_hit_and_explanation(self):
+        rule = self.create_rule()
+        analysis = run_decision_analysis(self.exam, self.doctor, self.rule_set)
+        self.assertEqual(analysis.rule_set.version, "test-1")
+        self.assertEqual(analysis.calculated_values["pta4_right"], 35.0)
+        self.assertEqual(len(analysis.input_snapshot), 4)
+        hit = analysis.rule_hits.get(rule=rule)
+        self.assertIn("фактическое значение 35.0", hit.explanation)
+        self.assertEqual(hit.evidence[0]["actual"], 35.0)
+        self.assertIn("тестовый набор", " ".join(analysis.warnings).lower())
+
+    def test_repeated_analysis_keeps_history(self):
+        self.create_rule()
+        first = run_decision_analysis(self.exam, self.doctor, self.rule_set)
+        second = run_decision_analysis(self.exam, self.doctor, self.rule_set)
+        self.assertNotEqual(first.pk, second.pk)
+        self.assertEqual(DecisionAnalysis.objects.filter(exam=self.exam).count(), 2)
+        self.assertEqual(first.data_hash, second.data_hash)
+
+    def test_previous_analysis_becomes_stale_after_measurement_change(self):
+        self.create_rule()
+        analysis = run_decision_analysis(self.exam, self.doctor, self.rule_set)
+        measurement = self.exam.measurements.get(frequency_hz=4000)
+        measurement.threshold_db_hl = 70
+        measurement.save(update_fields=("threshold_db_hl",))
+        self.exam.updated_at = timezone.now() + timedelta(seconds=1)
+        self.exam.save(update_fields=("updated_at",))
+        analysis = DecisionAnalysis.objects.select_related("exam").get(pk=analysis.pk)
+        self.assertTrue(analysis.is_stale)
+
+    def test_analysis_without_active_rules_returns_quantitative_warning(self):
+        self.rule_set.is_active = False
+        self.rule_set.save(update_fields=("is_active",))
+        analysis = run_decision_analysis(self.exam, self.doctor)
+        self.assertIsNone(analysis.rule_set)
+        self.assertEqual(analysis.rule_hits.count(), 0)
+        self.assertIn("не настроен", " ".join(analysis.warnings).lower())
