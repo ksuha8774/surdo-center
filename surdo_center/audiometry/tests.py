@@ -11,6 +11,7 @@ from medical.models import MedicalVisit
 from patients.models import Patient
 from scheduling.models import Appointment
 
+from .calculations import CALCULATION_VERSION, calculate_exam, calculate_indicators
 from .forms import AudiometryExamForm, AudiometryMeasurementGridForm
 from .models import AudiometryExam, AudiometryMeasurement
 from .services import can_edit_exam, can_view_exam, save_exam
@@ -131,3 +132,71 @@ class AudiometrySavingTests(AudiometryFixtureMixin, TestCase):
         self.assertIsNotNone(exam.completed_at)
         self.assertTrue(can_view_exam(self.user, exam))
         self.assertFalse(can_edit_exam(self.user, exam))
+
+
+class AudiometryCalculationTests(AudiometryFixtureMixin, TestCase):
+    def add_threshold(self, ear, conduction, frequency, value, *, masked=False, no_response=False):
+        return AudiometryMeasurement.objects.create(
+            exam=self.exam,
+            ear=ear,
+            conduction_type=conduction,
+            frequency_hz=frequency,
+            threshold_db_hl=None if no_response else value,
+            no_response=no_response,
+            no_response_level_db_hl=value if no_response else None,
+            masked=masked,
+        )
+
+    def add_complete_air_series(self, ear, values, *, masked=False):
+        for frequency, value in zip((500, 1000, 2000, 4000), values):
+            self.add_threshold(ear, "air", frequency, value, masked=masked)
+
+    def test_pta3_pta4_and_interaural_difference_use_control_values(self):
+        self.add_complete_air_series("right", (10, 20, 30, 40))
+        self.add_complete_air_series("left", (20, 30, 40, 50))
+        result = calculate_indicators(self.exam.measurements.all())
+        self.assertEqual(result.pta3_right, 20)
+        self.assertEqual(result.pta4_right, 25)
+        self.assertEqual(result.pta3_left, 30)
+        self.assertEqual(result.pta4_left, 35)
+        self.assertEqual(result.pta4_interaural_difference, 10)
+
+    def test_missing_frequency_and_no_response_do_not_become_zero(self):
+        self.add_threshold("right", "air", 500, 20)
+        self.add_threshold("right", "air", 1000, 30)
+        self.add_threshold("right", "air", 2000, 100, no_response=True)
+        self.add_threshold("right", "air", 4000, 40)
+        result = calculate_indicators(self.exam.measurements.all())
+        self.assertIsNone(result.pta3_right)
+        self.assertIsNone(result.pta4_right)
+        self.assertIn(2000, result.completeness["ears"]["right"]["missing_pta4_frequencies"])
+
+    def test_masked_air_threshold_is_preferred_for_pta(self):
+        self.add_complete_air_series("right", (10, 10, 10, 10))
+        self.add_threshold("right", "air", 1000, 50, masked=True)
+        result = calculate_indicators(self.exam.measurements.all())
+        self.assertEqual(result.pta4_right, 20)
+
+    def test_abg_matches_same_frequency_ear_and_masking_only(self):
+        self.add_threshold("right", "air", 1000, 50, masked=True)
+        self.add_threshold("right", "bone", 1000, 20, masked=True)
+        self.add_threshold("right", "air", 2000, 45, masked=True)
+        self.add_threshold("right", "bone", 2000, 10, masked=False)
+        self.add_threshold("left", "bone", 1000, 5, masked=True)
+        result = calculate_indicators(self.exam.measurements.all())
+        self.assertEqual(result.abg_by_frequency["right"]["1000"]["value"], 30.0)
+        self.assertNotIn("2000", result.abg_by_frequency["right"])
+        self.assertEqual(result.max_abg_right, 30)
+
+    def test_recalculation_updates_saved_result_after_measurement_change(self):
+        self.add_complete_air_series("right", (10, 20, 30, 40))
+        calculation, _ = calculate_exam(self.exam)
+        self.assertEqual(calculation.pta4_right, 25)
+        measurement = self.exam.measurements.get(ear="right", conduction_type="air", frequency_hz=4000)
+        measurement.threshold_db_hl = 80
+        measurement.save(update_fields=("threshold_db_hl",))
+        self.exam.updated_at = timezone.now()
+        self.exam.save(update_fields=("updated_at",))
+        calculation, _ = calculate_exam(self.exam)
+        self.assertEqual(calculation.pta4_right, 35)
+        self.assertEqual(calculation.calculation_version, CALCULATION_VERSION)
